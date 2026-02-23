@@ -1,10 +1,17 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { API_BASE_URL } from '../services/api'
 
 const Cart = () => {
   const navigate = useNavigate()
   const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart()
+
+  const getImageUrl = (url) => {
+    if (!url) return 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
+    if (url.startsWith('http')) return url
+    return `${API_BASE_URL}${url}`
+  }
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -39,11 +46,11 @@ const Cart = () => {
                 <div key={item.id} className="row align-items-center mb-3 pb-3 border-bottom">
                   <div className="col-md-2">
                     <img
-                      src={item.imageUrl || 'https://via.placeholder.com/100x100?text=EuroAsia'}
+                      src={getImageUrl(item.imageUrl || item.image_url)}
                       className="img-fluid rounded"
                       alt={item.name}
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/100x100?text=EuroAsia'
+                        e.target.src = 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
                       }}
                     />
                   </div>

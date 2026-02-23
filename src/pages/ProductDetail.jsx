@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { productAPI } from '../services/api'
+import { productAPI, API_BASE_URL } from '../services/api'
 import { useCart } from '../context/CartContext'
 
 const ProductDetail = () => {
@@ -11,6 +11,12 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
 
+  const getImageUrl = (url) => {
+    if (!url) return '/images/products/noiinox.jpg'
+    if (url.startsWith('http')) return url
+    return `${API_BASE_URL}${url}`
+  }
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -18,14 +24,14 @@ const ProductDetail = () => {
         setProduct(res.data)
       } catch (error) {
         console.error('Error fetching product:', error)
-        // Fallback data with local sample images
+        // Fallback data with Unsplash images
         const sampleProducts = {
-          '1': { name: 'Dao Bếp Chef', image: '/images/products/dao.jpg', price: 320000, description: 'Dao bếp chuyên nghiệp, lưỡi thép không gỉ' },
-          '2': { name: 'Nồi Inox Cao Cấp', image: '/images/products/noiinox.jpg', price: 450000, description: 'Nồi inox 304 cao cấp, thích hợp cho mọi loại bếp' },
-          '3': { name: 'Chảo Chống Dính', image: '/images/products/chao.jpg', price: 280000, description: 'Chảo chống dính lớp phủ ceramic an toàn' },
-          '4': { name: 'Bộ Thìa Inox', image: '/images/products/thia.jpg', price: 85000, description: 'Bộ thìa inox cao cấp, sáng bóng' }
+          '1': { name: 'Dao Bếp Chef', image: 'https://images.unsplash.com/photo-1593618998160-e34014e67546?w=400&q=80&auto=format&fit=crop', price: 320000, description: 'Dao bếp chuyên nghiệp, lưỡi thép không gỉ' },
+          '2': { name: 'Nồi Inox Cao Cấp', image: 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop', price: 450000, description: 'Nồi inox 304 cao cấp, thích hợp cho mọi loại bếp' },
+          '3': { name: 'Chảo Chống Dính', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80&auto=format&fit=crop', price: 280000, description: 'Chảo chống dính lớp phủ ceramic an toàn' },
+          '4': { name: 'Bộ Thìa Inox', image: 'https://images.unsplash.com/photo-1617993455374-1f2b8d6c4fb3?w=400&q=80&auto=format&fit=crop', price: 85000, description: 'Bộ thìa inox cao cấp, sáng bóng' }
         }
-        const sample = sampleProducts[id] || { name: 'Sản phẩm mẫu', image: '/images/products/noiinox.jpg', price: 500000, description: 'Sản phẩm chất lượng cao từ EuroAsia' }
+        const sample = sampleProducts[id] || { name: 'Sản phẩm mẫu', image: 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop', price: 500000, description: 'Sản phẩm chất lượng cao từ EuroAsia' }
         setProduct({
           id: id,
           name: sample.name,
@@ -79,7 +85,7 @@ const ProductDetail = () => {
         <div className="col-md-6">
           <div className="card shadow-sm overflow-hidden bg-white">
             <img
-              src={product.imageUrl || '/images/products/noiinox.jpg'}
+              src={getImageUrl(product.imageUrl || product.image_url)}
               className="w-100"
               alt={product.name}
               style={{ objectFit: 'contain', height: '350px', backgroundColor: '#fff' }}
