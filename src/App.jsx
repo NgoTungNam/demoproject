@@ -20,6 +20,7 @@ import AdminCategories from './pages/Admin/AdminCategories'
 import AdminOrders from './pages/Admin/AdminOrders'
 import AdminPromotions from './pages/Admin/AdminPromotions'
 import AdminCustomers from './pages/Admin/AdminCustomers'
+import AdminDashboard from './pages/Admin/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -58,8 +59,8 @@ function App() {
                 <AdminLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<div className="text-center mt-5"><h2>Welcome to Admin Dashboard</h2></div>} />
-              <Route path="dashboard" element={<div className="text-center mt-5"><h2>Welcome to Admin Dashboard</h2></div>} />
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="orders" element={<AdminOrders />} />
