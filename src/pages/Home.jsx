@@ -21,9 +21,27 @@ const Home = () => {
         console.error('Error fetching data:', error)
         // Fallback data for demo
         setFeaturedProducts([
-          { id: 1, name: 'Bộ dao bếp cao cấp Boker', price: 2500000, imageUrl: 'https://images.unsplash.com/photo-1593618998160-e34014e67546?w=400&q=80&auto=format&fit=crop', description: 'Bộ dao bếp cao cấp Boker với 5 dao và dụng cụ, chất liệu thép không gỉ, tay cầm chắc chắn, phù hợp cho mọi công việc trong bếp' },
-          { id: 2, name: 'Nồi hấp inox đa năng', price: 1200000, imageUrl: 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop', description: 'Nồi hấp đa tầng bằng inox 304 cao cấp, thiết kế nhiều tầng tiện lợi, tay cầm chắc chắn, an toàn sức khỏe, phù hợp cho mọi loại bếp' },
-          { id: 3, name: 'Chảo chống dính', price: 300000, imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=80&auto=format&fit=crop', description: 'Chảo chống dính không độc hại, an toàn cho sức khỏe' },
+          { 
+            id: 1, 
+            name: 'Bộ dao bếp cao cấp EuroAsia', 
+            price: 2500000, 
+            image_url: '/images/products/dao.jpg', 
+            description: 'Bộ dao bếp cao cấp EuroAsia với chất liệu thép không gỉ, tay cầm chắc chắn, phù hợp cho mọi công việc trong bếp' 
+          },
+          { 
+            id: 2, 
+            name: 'Nồi hấp inox đa năng', 
+            price: 1200000, 
+            image_url: '/images/products/noiinox.jpg', 
+            description: 'Nồi hấp đa tầng bằng inox 304 cao cấp, thiết kế nhiều tầng tiện lợi, tay cầm chắc chắn, an toàn sức khỏe' 
+          },
+          { 
+            id: 3, 
+            name: 'Chảo chống dính', 
+            price: 300000, 
+            image_url: '/images/products/chao.jpg', 
+            description: 'Chảo chống dính không độc hại, an toàn cho sức khỏe' 
+          },
         ])
       } finally {
         setLoading(false)

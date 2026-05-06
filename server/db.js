@@ -1,19 +1,18 @@
 const mysql = require('mysql2');
 
-// Tạo kết nối đến database
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',      // Tên đăng nhập mặc định của XAMPP/MySQL
-    password: '123456', // Mật khẩu bạn vừa cung cấp
-    database: 'euroasia_db' // Tên database bạn cần tạo trong MySQL
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '123456',
+    database: process.env.DB_NAME || 'euroasia_db',
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    // Thêm SSL nếu dùng Railway hoặc PlanetScale
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : null
 });
 
-connection.connect((err) => {
-    if (err) {
-        console.error('Lỗi kết nối MySQL:', err);
-        return;
-    }
-    console.log('Đã kết nối thành công với MySQL Database!');
-});
+console.log('🚀 Đã khởi tạo MySQL Connection Pool cho môi trường Cloud!');
 
-module.exports = connection;
+module.exports = pool;
