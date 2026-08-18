@@ -13,24 +13,13 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:3000',
-    process.env.FRONTEND_URL // Domain Vercel
-];
-
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS not allowed by DevOps'));
-        }
-    },
-    credentials: true,
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors());
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -87,8 +76,7 @@ app.get('/api/products/:id', (req, res) => {
 
 app.post('/api/products', upload.single('image'), (req, res) => {
     const { name, price, description, category_id } = req.body;
-    // Lấy URL từ Cloudinary thay vì path local
-    const image_url = req.file ? req.file.path : null; 
+    const image_url = req.file ? req.file.path : null;
     const sql = 'INSERT INTO products (name, price, description, image_url, category_id) VALUES (?, ?, ?, ?, ?)';
     db.query(sql, [name, price, description, image_url, category_id || 1], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -119,7 +107,6 @@ app.post('/api/orders', (req, res) => {
     console.log('--- Đang tạo đơn hàng mới ---');
     console.log('Dữ liệu nhận được:', { user_id, total_amount, itemsCount: items.length });
 
-    // Kiểm tra xem user_id có tồn tại trong bảng users không
     db.query('SELECT id FROM users WHERE id = ?', [user_id], (uErr, uResults) => {
         let finalUserId = user_id;
         if (uErr || uResults.length === 0) {
@@ -139,11 +126,11 @@ app.post('/api/orders', (req, res) => {
 
             const itemSql = 'INSERT INTO order_items (order_id, product_id, product_name, quantity, price, total_price) VALUES ?';
             const values = items.map(item => [
-                orderId, 
-                item.id, 
-                item.name || 'Sản phẩm', 
-                item.quantity, 
-                item.price, 
+                orderId,
+                item.id,
+                item.name || 'Sản phẩm',
+                item.quantity,
+                item.price,
                 item.quantity * item.price
             ]);
 
@@ -190,21 +177,12 @@ app.patch('/api/orders/:id/status', (req, res) => {
     );
 });
 
-// ============================================================
-// PAYMENT ROUTES
-// ============================================================
-
 // --- MOMO: Create payment ---
 app.post('/api/payment/momo/create', async (req, res) => {
     const { amount, orderInfo, orderId } = req.body;
     if (!amount) return res.status(400).json({ error: 'Thiếu số tiền' });
-    
     try {
-        const result = await momoPayment.createMomoPayment(
-            amount,
-            orderInfo || `Thanh toán EuroAsia Kitchen`,
-            orderId
-        );
+        const result = await momoPayment.createMomoPayment(amount, orderInfo || 'Thanh toán EuroAsia Kitchen', orderId);
         res.json({ success: true, payUrl: result.payUrl });
     } catch (err) {
         console.error('[MoMo Create Error]', err);
@@ -217,11 +195,7 @@ app.post('/api/payment/momo/ipn', (req, res) => {
     const isValid = payment.verifyMomoCallback(req.body);
     if (isValid && req.body.resultCode === 0) {
         const orderId = req.body.orderId.split('_')[0];
-        db.query(
-            "UPDATE orders SET payment_status = 'paid', payment_method = 'momo' WHERE id = ?",
-            [orderId],
-            () => {}
-        );
+        db.query("UPDATE orders SET payment_status = 'paid', payment_method = 'momo' WHERE id = ?", [orderId], () => {});
     }
     res.status(204).send();
 });
@@ -230,16 +204,9 @@ app.post('/api/payment/momo/ipn', (req, res) => {
 app.post('/api/payment/vnpay/create', (req, res) => {
     const { amount, orderInfo, orderId } = req.body;
     if (!amount) return res.status(400).json({ error: 'Thiếu số tiền' });
-
     const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
-    
     try {
-        const result = vnpayPayment.createVnpayPayment(
-            amount,
-            orderInfo || `Thanh toán EuroAsia Kitchen`,
-            ipAddr,
-            orderId
-        );
+        const result = vnpayPayment.createVnpayPayment(amount, orderInfo || 'Thanh toán EuroAsia Kitchen', ipAddr, orderId);
         res.json({ success: true, paymentUrl: result.paymentUrl });
     } catch (err) {
         console.error('[VNPay Create Error]', err);
@@ -253,14 +220,10 @@ app.get('/api/payment/vnpay/return', (req, res) => {
     const responseCode = req.query['vnp_ResponseCode'];
     const txnRef = req.query['vnp_TxnRef'] || '';
     const orderId = txnRef.split('_')[0];
-    const frontendUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     if (isValid && responseCode === '00') {
-        db.query(
-            "UPDATE orders SET payment_status = 'paid', payment_method = 'vnpay' WHERE id = ?",
-            [orderId],
-            () => {}
-        );
+        db.query("UPDATE orders SET payment_status = 'paid', payment_method = 'vnpay' WHERE id = ?", [orderId], () => {});
         res.redirect(`${frontendUrl}/checkout/payment-result?status=success&method=vnpay&orderId=${orderId}`);
     } else {
         res.redirect(`${frontendUrl}/checkout/payment-result?status=failed&method=vnpay&orderId=${orderId}`);
