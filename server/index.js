@@ -27,8 +27,10 @@ app.use(cors({
         }
     },
     credentials: true
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
+app.options('*', cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
