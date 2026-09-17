@@ -51,6 +51,14 @@ const statements = [
    SELECT c.id, 'Nồi Inox Cao Cấp', 450000, 20, '/images/products/noiinox.jpg'
    FROM categories c WHERE c.name = 'Nồi & Chảo'
    AND NOT EXISTS (SELECT 1 FROM products WHERE name = 'Nồi Inox Cao Cấp')`,
+  `INSERT INTO products (category_id, name, price, stock, image_url)
+   SELECT c.id, 'Chảo Chống Dính', 380000, 30, '/images/products/chao.jpg'
+   FROM categories c WHERE c.name = 'Nồi & Chảo'
+   AND NOT EXISTS (SELECT 1 FROM products WHERE name = 'Chảo Chống Dính')`,
+  `INSERT INTO products (category_id, name, price, stock, image_url)
+   SELECT c.id, 'Thìa Inox', 45000, 100, '/images/products/thia.jpg'
+   FROM categories c WHERE c.name = 'Dụng cụ bếp'
+   AND NOT EXISTS (SELECT 1 FROM products WHERE name = 'Thìa Inox')`,
 ];
 
 async function initializeSchema() {
