@@ -1,0 +1,15 @@
+# Railway/Nixpacks deployment configuration.
+# Keep the API running as a Node service; Vite's generated `dist` directory
+# is served by Express from server/index.js.
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node server/index.js"
