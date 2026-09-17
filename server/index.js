@@ -8,6 +8,7 @@ const db = require("./db");
 const payment = require("./payment");
 const momoPayment = require("./payment/momo");
 const vnpayPayment = require("./payment/vnpay");
+const { initializeSchema } = require("./schema");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -342,6 +343,10 @@ app.post("/api/payment/cod/confirm", (req, res) => {
 });
 
 // Khởi chạy server
+initializeSchema().catch((error) => {
+  console.error("Database schema initialization failed:", error.message);
+});
+
 app.listen(PORT, () => {
   console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });
