@@ -56,11 +56,12 @@ const AdminDashboard = () => {
     return (
         <div className="admin-dashboard" style={{ fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
             {/* Header */}
-            <div style={{ marginBottom: '28px' }}>
+            <div className="admin-dashboard-header" style={{ marginBottom: '28px' }}>
                 <h1 style={{ fontSize: '26px', fontWeight: 700, margin: 0 }}>📊 Dashboard</h1>
                 <p style={{ color: '#64748b', marginTop: '4px', fontSize: '14px' }}>
                     Chào mừng trở lại! Đây là tổng quan hệ thống hôm nay.
                 </p>
+                <Link to="/" className="admin-home-link">🏠 Về trang chủ</Link>
             </div>
 
             {/* Stat Cards */}

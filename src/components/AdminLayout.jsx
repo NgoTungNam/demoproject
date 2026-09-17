@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
+    { path: '/', icon: '🏠', label: 'Về trang chủ', exact: true },
     { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/admin/products',  icon: '🛋️', label: 'Sản phẩm' },
     { path: '/admin/categories',icon: '🏷️', label: 'Danh mục' },
@@ -16,7 +17,7 @@ const AdminLayout = () => {
     const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
 
-    const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+    const isActive = (path, exact) => exact ? location.pathname === path : location.pathname === path || location.pathname.startsWith(path + '/');
 
     return (
         <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Segoe UI', sans-serif" }}>
@@ -61,7 +62,7 @@ const AdminLayout = () => {
                 {/* Nav */}
                 <nav style={{ padding: '16px 12px', flex: 1 }}>
                     {navItems.map(item => {
-                        const active = isActive(item.path);
+                        const active = isActive(item.path, item.exact);
                         return (
                             <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>
                                 <div style={{
