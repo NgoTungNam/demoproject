@@ -28,6 +28,7 @@
     "start": "node server/index.js",
     "dev": "vite --port 3000 --strictPort",
     "server": "node server/index.js",
+    "db:init": "node server/init_db.js",
     "migrate": "node server/migrate_payment.js",
     "build": "vite build",
     "preview": "npm run build && wrangler dev",

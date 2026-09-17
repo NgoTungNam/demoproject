@@ -2,52 +2,39 @@ const mysql = require('mysql2');
 const fs = require('fs');
 const path = require('path');
 
-// 1. Kết nối không cần DB trước để tạo DB
+// Uses the same variables as server/db.js, so it works both locally and in
+// Railway's MySQL service.
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '123456',
-    multipleStatements: true // Quan trọng để chạy chuỗi SQL dài
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '123456',
+  database: process.env.DB_NAME || 'euroasia_db',
+  port: Number(process.env.DB_PORT || 3306),
+  multipleStatements: true,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 });
 
 const schemaPath = path.join(__dirname, '..', 'database_schema.md');
 const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-
-// Trích xuất các khối SQL từ file markdown
 const sqlBlocks = schemaContent.match(/```sql([\s\S]*?)```/g) || [];
-const fullSql = sqlBlocks.map(block => block.replace(/```sql|```/g, '')).join('\n');
+const fullSql = sqlBlocks.map((block) => block.replace(/```sql|```/g, '')).join('\n');
 
-console.log('--- ĐANG KHỞI TẠO DATABASE ---');
+console.log('Initializing database schema...');
 
-connection.connect((err) => {
-    if (err) {
-        console.error('❌ Lỗi kết nối MySQL:', err.message);
-        process.exit(1);
+connection.connect((connectError) => {
+  if (connectError) {
+    console.error('Database connection failed:', connectError.message);
+    process.exit(1);
+  }
+
+  connection.query(fullSql, (queryError) => {
+    if (queryError) {
+      // Tables already being present is safe on later deploys. The payment
+      // migration is run afterwards and remains idempotent.
+      console.error('Schema initialization warning:', queryError.message);
+    } else {
+      console.log('Database schema and sample data initialized.');
     }
-
-    connection.query('CREATE DATABASE IF NOT EXISTS euroasia_db', (err) => {
-        if (err) {
-            console.error('❌ Lỗi tạo Database:', err.message);
-            process.exit(1);
-        }
-        console.log('✅ Đã tạo/Kiểm tra xong Database: euroasia_db');
-
-        connection.changeUser({ database: 'euroasia_db' }, (err) => {
-            if (err) {
-                console.error('❌ Lỗi chọn Database:', err.message);
-                process.exit(1);
-            }
-
-            connection.query(fullSql, (err) => {
-                if (err) {
-                    console.error('❌ Lỗi chạy Script SQL:', err.message);
-                    // Không thoát để xem lỗi cụ thể, có thể do bảng đã tồn tại
-                } else {
-                    console.log('✅ Đã khởi tạo các bảng và dữ liệu mẫu thành công!');
-                }
-                connection.end();
-                console.log('------------------------------');
-            });
-        });
-    });
+    connection.end();
+  });
 });
