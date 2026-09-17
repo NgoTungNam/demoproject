@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-import { productAPI } from '../../services/api';
+import { API_BASE_URL, productAPI } from '../../services/api';
+
+const fallbackImage = '/images/products/chao.jpg';
+
+const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return `${API_BASE_URL}${fallbackImage}`;
+    return imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`;
+};
 
 const AdminProducts = () => {
     const [products, setProducts] = useState([]);
@@ -67,10 +74,13 @@ const AdminProducts = () => {
                                         <tr key={product.id}>
                                             <td>
                                                 <img 
-                                                    src={product.image_url?.startsWith('http') ? product.image_url : `http://localhost:8080${product.image_url}`} 
-                                                    alt={product.name} 
-                                                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-                                                    onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
+                                                    src={getImageUrl(product.image_url)}
+                                                    alt={product.name}
+                                                    style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '8px', background: '#f1f5f9' }}
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = `${API_BASE_URL}${fallbackImage}`;
+                                                    }}
                                                 />
                                             </td>
                                             <td className="fw-bold">{product.name}</td>
