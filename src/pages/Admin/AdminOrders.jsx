@@ -119,9 +119,9 @@ const AdminOrders = () => {
   };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="admin-orders" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div className="admin-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#1a1a2e', margin: 0 }}>
             📋 Quản Lý Đơn Hàng
@@ -143,7 +143,7 @@ const AdminOrders = () => {
       </div>
 
       {/* Stats row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div className="admin-order-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
         {[
           { label: 'Tổng đơn', value: stats.total, icon: '📦', color: '#6366f1' },
           { label: 'Chờ xử lý', value: stats.pending, icon: '⏳', color: '#f59e0b' },

@@ -54,7 +54,7 @@ const AdminDashboard = () => {
     const maxVal = Math.max(...weeklyData);
 
     return (
-        <div style={{ fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
+        <div className="admin-dashboard" style={{ fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
             {/* Header */}
             <div style={{ marginBottom: '28px' }}>
                 <h1 style={{ fontSize: '26px', fontWeight: 700, margin: 0 }}>📊 Dashboard</h1>
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Stat Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '20px', marginBottom: '28px' }}>
+            <div className="admin-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '20px', marginBottom: '28px' }}>
                 {statCards.map((card, i) => (
                     <div key={i} style={{
                         background: card.gradient, borderRadius: '16px',
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Chart + Top Products */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '28px' }}>
+            <div className="admin-dashboard-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '28px' }}>
                 {/* Weekly Bar Chart */}
                 <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                     <h5 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '16px' }}>📈 Đơn hàng trong tuần</h5>

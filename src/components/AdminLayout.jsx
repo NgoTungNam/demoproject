@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,13 +14,23 @@ const navItems = [
 const AdminLayout = () => {
     const { logout, user } = useAuth();
     const location = useLocation();
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Segoe UI', sans-serif" }}>
+        <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Segoe UI', sans-serif" }}>
+            <button
+                className="admin-menu-toggle"
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Mở menu quản trị"
+                aria-expanded={menuOpen}
+            >
+                {menuOpen ? '✕' : '☰'}
+            </button>
             {/* Sidebar */}
-            <div style={{
+            <aside className={`admin-sidebar ${menuOpen ? 'is-open' : ''}`} style={{
                 width: '240px', flexShrink: 0,
                 background: 'linear-gradient(180deg,#1e1b4b 0%,#312e81 60%,#4338ca 100%)',
                 display: 'flex', flexDirection: 'column',
@@ -53,7 +63,7 @@ const AdminLayout = () => {
                     {navItems.map(item => {
                         const active = isActive(item.path);
                         return (
-                            <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
+                            <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>
                                 <div style={{
                                     display: 'flex', alignItems: 'center', gap: '12px',
                                     padding: '11px 14px', borderRadius: '10px',
@@ -92,14 +102,14 @@ const AdminLayout = () => {
                         🚪 Đăng xuất
                     </button>
                 </div>
-            </div>
+            </aside>
 
             {/* Main Content */}
-            <div style={{ flex: 1, background: '#f8fafc', overflowY: 'auto' }}>
-                <div style={{ padding: '32px' }}>
+            <main className="admin-main" style={{ flex: 1, background: '#f8fafc', overflowY: 'auto' }}>
+                <div className="admin-content" style={{ padding: '32px' }}>
                     <Outlet />
                 </div>
-            </div>
+            </main>
         </div>
     );
 };
