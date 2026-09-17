@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({ revenue: 0, orders: 0, customers: 0, products: 0 });
@@ -23,8 +24,46 @@ const AdminDashboard = () => {
         ]);
     }, []);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadRecentOrders = async () => {
+            try {
+                const { data } = await api.get('/orders/admin');
+                if (!isMounted) return;
+
+                setRecentOrders(data.slice(0, 5).map((order) => ({
+                    id: order.id,
+                    customer: order.shipping_name || order.user_name || 'Khách vãng lai',
+                    date: order.created_at ? new Date(order.created_at).toLocaleDateString('vi-VN') : '—',
+                    total: Number(order.total_amount || 0),
+                    status: order.status || 'pending',
+                })));
+
+                setStats((current) => ({
+                    ...current,
+                    orders: data.length,
+                    revenue: data
+                        .filter((order) => order.payment_status === 'paid')
+                        .reduce((sum, order) => sum + Number(order.total_amount || 0), 0) / 1000,
+                }));
+            } catch (error) {
+                console.error('Could not load recent orders:', error);
+                if (isMounted) setRecentOrders([]);
+            }
+        };
+
+        loadRecentOrders();
+        return () => { isMounted = false; };
+    }, []);
+
     const getStatusBadge = (status) => {
         const map = {
+            pending: { bg: '#fef9c3', color: '#ca8a04', label: 'Chờ xác nhận' },
+            processing: { bg: '#dbeafe', color: '#2563eb', label: 'Đang xử lý' },
+            shipped: { bg: '#e0f2fe', color: '#0284c7', label: 'Đang giao' },
+            delivered: { bg: '#dcfce7', color: '#16a34a', label: 'Đã giao' },
+            cancelled: { bg: '#fee2e2', color: '#dc2626', label: 'Đã huỷ' },
             Delivered: { bg: '#dcfce7', color: '#16a34a', label: 'Đã giao' },
             Processing: { bg: '#dbeafe', color: '#2563eb', label: 'Đang xử lý' },
             Pending: { bg: '#fef9c3', color: '#ca8a04', label: 'Chờ xác nhận' },
