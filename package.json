@@ -25,6 +25,7 @@
     "wrangler": "^4.123.0"
   },
   "scripts": {
+    "start": "node server/index.js",
     "dev": "vite --port 3000 --strictPort",
     "server": "node server/index.js",
     "migrate": "node server/migrate_payment.js",

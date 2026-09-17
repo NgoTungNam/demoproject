@@ -18,13 +18,17 @@ app.use(
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+  })
 );
-// app.options('*', cors());
-app.options("/*splat", cors());
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../dist")));
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", service: "EuroAsia Backend API", time: new Date().toISOString() });
+});
 
 // --- Cloudinary Configuration ---
 cloudinary.config({
