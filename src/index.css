@@ -73,3 +73,76 @@ body {
   min-height: 400px;
 }
 
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  /* Header search bar */
+  .navbar .d-flex.me-3 {
+    width: 100%;
+    margin-right: 0 !important;
+    margin-bottom: 8px;
+  }
+
+  /* Checkout cards responsive padding */
+  .checkout-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .checkout-summary-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    position: static !important;
+  }
+
+  /* Payment Result & Success box on mobile */
+  .payment-card-box,
+  .checkout-success-box {
+    padding: 32px 18px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Font size adjustment for headings */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Form inputs font-size at least 16px to prevent iOS zoom */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Cart product images responsive */
+  .cart-product-img {
+    height: 70px !important;
+    object-fit: cover !important;
+  }
+}
+
+/* Extra small screens (< 480px) */
+@media (max-width: 480px) {
+  .navbar-brand {
+    font-size: 1.25rem !important;
+  }
+
+  .checkout-card,
+  .checkout-summary-card {
+    padding: 16px 14px !important;
+  }
+
+  /* Make cart input-group smaller */
+  .input-group .btn {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+}
+

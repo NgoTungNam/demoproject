@@ -1,26 +1,56 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
 
 const methodLabel = {
-  momo: { name: 'MoMo', icon: '💜', color: '#d63384' },
-  vnpay: { name: 'VNPay', icon: '🏦', color: '#f59e0b' },
+  momo: { name: 'Ví MoMo', icon: '💜', color: '#d63384' },
+  vnpay: { name: 'Cổng VNPay', icon: '🏦', color: '#f59e0b' },
   cod: { name: 'Thanh toán khi nhận hàng', icon: '🚚', color: '#10b981' },
   bank: { name: 'Chuyển khoản ngân hàng', icon: '💳', color: '#6366f1' },
 }
 
 const PaymentResult = () => {
   const [params] = useSearchParams()
-  const status = params.get('status') || 'success'
-  const method = params.get('method') || 'cod'
-  const orderId = params.get('orderId') || params.get('vnp_TxnRef')?.split('_')[0]
+  const { clearCart } = useCart()
+
+  const momoResultCode = params.get('resultCode')
   const vnpResponseCode = params.get('vnp_ResponseCode')
+  const statusParam = params.get('status')
 
-  // VNPay trả về trực tiếp params trên URL return
-  const isSuccess =
-    status === 'success' ||
-    (vnpResponseCode && vnpResponseCode === '00')
+  // Kiểm tra trạng thái thanh toán
+  let isSuccess = false
+  if (momoResultCode !== null) {
+    isSuccess = momoResultCode === '0'
+  } else if (vnpResponseCode !== null) {
+    isSuccess = vnpResponseCode === '00'
+  } else if (statusParam !== null) {
+    isSuccess = statusParam === 'success'
+  } else {
+    isSuccess = true
+  }
 
+  // Tự động nhận diện method nếu không có param method
+  let method = params.get('method')
+  if (!method) {
+    if (momoResultCode !== null || params.get('partnerCode') === 'MOMO') {
+      method = 'momo'
+    } else if (vnpResponseCode !== null || params.get('vnp_TxnRef')) {
+      method = 'vnpay'
+    } else {
+      method = 'cod'
+    }
+  }
+
+  const rawOrderId = params.get('orderId') || params.get('vnp_TxnRef')
+  const orderId = rawOrderId ? rawOrderId.split('_')[0] : null
   const m = methodLabel[method] || methodLabel.cod
+
+  // Nếu thanh toán thành công, xóa giỏ hàng
+  useEffect(() => {
+    if (isSuccess) {
+      clearCart()
+    }
+  }, [isSuccess])
 
   const [count, setCount] = useState(8)
   useEffect(() => {
@@ -48,16 +78,17 @@ const PaymentResult = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
+        padding: '24px 16px',
         fontFamily: "'Segoe UI', sans-serif",
       }}
     >
       <div
+        className="payment-card-box"
         style={{
           background: '#fff',
-          borderRadius: 28,
+          borderRadius: 24,
           boxShadow: '0 8px 60px rgba(0,0,0,0.1)',
-          padding: '56px 48px',
+          padding: '40px 24px',
           maxWidth: 520,
           width: '100%',
           textAlign: 'center',

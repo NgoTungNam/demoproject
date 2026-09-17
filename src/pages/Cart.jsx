@@ -44,48 +44,52 @@ const Cart = () => {
             <div className="card-body">
               {cartItems.map((item) => (
                 <div key={item.id} className="row align-items-center mb-3 pb-3 border-bottom">
-                  <div className="col-md-2">
+                  <div className="col-3 col-md-2">
                     <img
                       src={getImageUrl(item.imageUrl || item.image_url)}
                       className="img-fluid rounded"
                       alt={item.name}
+                      style={{ width: '100%', height: '70px', objectFit: 'cover' }}
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
                       }}
                     />
                   </div>
-                  <div className="col-md-4">
-                    <h5 className="mb-1">{item.name}</h5>
+                  <div className="col-9 col-md-4">
+                    <h6 className="mb-1 fw-bold">{item.name}</h6>
                     <p className="text-muted small mb-0">{formatPrice(item.price)}</p>
                   </div>
-                  <div className="col-md-3">
-                    <div className="input-group">
+                  <div className="col-6 col-md-3 mt-2 mt-md-0">
+                    <div className="input-group input-group-sm" style={{ maxWidth: '120px' }}>
                       <button
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-secondary"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        aria-label="Giảm số lượng"
                       >
                         -
                       </button>
                       <input
                         type="number"
-                        className="form-control text-center"
+                        className="form-control text-center px-1"
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
                         min="1"
                       />
                       <button
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-secondary"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        aria-label="Tăng số lượng"
                       >
                         +
                       </button>
                     </div>
                   </div>
-                  <div className="col-md-2 text-end">
-                    <p className="fw-bold mb-1">{formatPrice(item.price * item.quantity)}</p>
+                  <div className="col-6 col-md-3 text-end mt-2 mt-md-0 d-flex align-items-center justify-content-end gap-2">
+                    <span className="fw-bold text-primary">{formatPrice(item.price * item.quantity)}</span>
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => removeFromCart(item.id)}
+                      title="Xóa khỏi giỏ hàng"
                     >
                       <i className="bi bi-trash"></i>
                     </button>
@@ -95,7 +99,7 @@ const Cart = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-4 mt-4 mt-md-0">
           <div className="card">
             <div className="card-header bg-primary text-white">
               <h5 className="mb-0">Tổng Kết</h5>

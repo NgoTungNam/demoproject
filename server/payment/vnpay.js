@@ -1,5 +1,21 @@
 const crypto = require('crypto');
-const querystring = require('qs'); // Using qs for better object serialization
+const qs = require('qs');
+
+function sortObject(obj) {
+    const sorted = {};
+    const str = [];
+    let key;
+    for (key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            str.push(encodeURIComponent(key));
+        }
+    }
+    str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[decodeURIComponent(str[key])]).replace(/%20/g, "+");
+    }
+    return sorted;
+}
 
 function createVnpayPayment(amount, orderInfo, ipAddr, orderId) {
     const tmnCode = process.env.VNP_TMNCODE || 'DEMOVNPA';
@@ -9,7 +25,7 @@ function createVnpayPayment(amount, orderInfo, ipAddr, orderId) {
 
     const date = new Date();
     const createDate = formatDate(date);
-    const vnpTxnRef = orderId ? `${orderId}_${Date.now()}` : formatDate(date, true); 
+    const vnpTxnRef = orderId ? `${orderId}_${Date.now()}` : formatDate(date, true);
 
     let vnp_Params = {};
     vnp_Params['vnp_Version'] = '2.1.0';
@@ -27,31 +43,32 @@ function createVnpayPayment(amount, orderInfo, ipAddr, orderId) {
 
     vnp_Params = sortObject(vnp_Params);
 
-    const signData = querystring.stringify(vnp_Params, { encode: false });
-    const hmac = crypto.createHmac("sha512", hashSecret);
-    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
-    
-    vnp_Params['vnp_SecureHash'] = signed;
-    const finalUrl = vnpUrl + '?' + querystring.stringify(vnp_Params, { encode: true });
+    const signData = qs.stringify(vnp_Params, { encode: false });
+    const hmac = crypto.createHmac('sha512', hashSecret);
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    console.log('[VNPay Request Params]', vnp_Params);
+    vnp_Params['vnp_SecureHash'] = signed;
+    const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
+
+    console.log('[VNPay] signData:', signData);
+    console.log('[VNPay] signed:', signed);
+    console.log('[VNPay] finalUrl:', finalUrl);
     return { paymentUrl: finalUrl };
 }
 
-function sortObject(obj) {
-    let sorted = {};
-    let str = [];
-    let key;
-    for (key in obj){
-        if (obj.hasOwnProperty(key)) {
-            str.push(encodeURIComponent(key));
-        }
-    }
-    str.sort();
-    for (key = 0; key < str.length; key++) {
-        sorted[decodeURIComponent(str[key])] = obj[decodeURIComponent(str[key])];
-    }
-    return sorted;
+function verifyVnpayCallback(query) {
+    const secureHash = query['vnp_SecureHash'];
+    const params = { ...query };
+    delete params['vnp_SecureHash'];
+    delete params['vnp_SecureHashType'];
+
+    const sortedParams = sortObject(params);
+    const signData = qs.stringify(sortedParams, { encode: false });
+    const hashSecret = process.env.VNP_HASH_SECRET || 'RAOEXHYVSDDIIENYWSLDIIZTANXUXZTS';
+    const hmac = crypto.createHmac('sha512', hashSecret);
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+    return signed === secureHash;
 }
 
 function formatDate(date, withMs = false) {
@@ -66,4 +83,4 @@ function formatDate(date, withMs = false) {
     return res;
 }
 
-module.exports = { createVnpayPayment };
+module.exports = { createVnpayPayment, verifyVnpayCallback };

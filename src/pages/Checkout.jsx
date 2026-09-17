@@ -60,14 +60,14 @@ const styles = {
     marginBottom: 6,
   },
   formGroup: { marginBottom: 18 },
-  row: { display: 'flex', gap: 16 },
-  halfWidth: { flex: 1 },
+  row: { display: 'flex', gap: 16, flexWrap: 'wrap' },
+  halfWidth: { flex: '1 1 180px', minWidth: 0 },
 
   /* Payment methods */
   methodGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: 14,
+    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+    gap: 12,
     marginTop: 4,
   },
   methodCard: (selected, color) => ({
@@ -118,8 +118,6 @@ const styles = {
     borderRadius: 20,
     boxShadow: '0 4px 30px rgba(0,0,0,0.08)',
     padding: 28,
-    position: 'sticky',
-    top: 24,
   },
   orderItem: {
     display: 'flex',
@@ -260,11 +258,11 @@ const Checkout = () => {
     return form.fullName && form.email && form.phone && form.address && form.city;
   }
 
+  // handleSubmit
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     if (!isFormValid()) {
       alert('Vui lòng điền đầy đủ thông tin giao hàng trước khi thanh toán.')
-      // Scroll to top to show missing fields
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return
     }
@@ -284,6 +282,7 @@ const Checkout = () => {
         shipping_address: `${form.address}, ${form.city}`,
         shipping_phone: form.phone,
         total_amount: totalAmount,
+        payment_method: paymentMethod,
         user_id: JSON.parse(localStorage.getItem('user') || '{}').id || null,
         items: cartItems.map((item) => ({
           id: item.id,
@@ -298,11 +297,11 @@ const Checkout = () => {
       const orderId = orderRes.data.orderId
 
       // 2. Xử lý theo phương thức thanh toán
-      clearCart()
-
       if (paymentMethod === 'cod') {
+        clearCart()
         navigate(`/checkout/success?method=cod&orderId=${orderId}`)
       } else if (paymentMethod === 'bank') {
+        clearCart()
         navigate(`/checkout/success?method=bank&orderId=${orderId}`)
       } else if (paymentMethod === 'momo') {
         try {
@@ -336,15 +335,9 @@ const Checkout = () => {
     }
   }
 
-  // Xử lý khi click vào thẻ phương thức thanh toán
+  // Xử lý khi click vào thẻ phương thức thanh toán: Chỉ chọn phương thức, không tự submit
   const handleMethodClick = (methodId) => {
     setPaymentMethod(methodId);
-    
-    // Nếu là MoMo hoặc VNPay và form đã điền xong, tự động submit luôn cho nhanh
-    if ((methodId === 'momo' || methodId === 'vnpay') && isFormValid()) {
-      // Đợi state update xong rồi gọi submit
-      setTimeout(() => handleSubmit(), 100);
-    }
   }
 
   if (cartItems.length === 0) {
@@ -392,7 +385,7 @@ const Checkout = () => {
             {/* LEFT COLUMN */}
             <div className="col-lg-8">
               {/* Shipping info */}
-              <div style={styles.card}>
+              <div className="checkout-card" style={styles.card}>
                 <h2 style={styles.sectionTitle}>
                   <span>📦</span> Thông Tin Giao Hàng
                 </h2>
@@ -503,7 +496,7 @@ const Checkout = () => {
               </div>
 
               {/* Payment methods */}
-              <div style={styles.card}>
+              <div className="checkout-card" style={styles.card}>
                 <h2 style={styles.sectionTitle}>
                   <span>💳</span> Phương Thức Thanh Toán
                 </h2>
@@ -597,7 +590,7 @@ const Checkout = () => {
 
             {/* RIGHT COLUMN — Order summary */}
             <div className="col-lg-4">
-              <div style={styles.summaryCard}>
+              <div className="checkout-summary-card" style={styles.summaryCard}>
                 <h2 style={styles.sectionTitle}>
                   <span>🧾</span> Đơn Hàng Của Bạn
                 </h2>

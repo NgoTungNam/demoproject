@@ -24,17 +24,34 @@ const Header = () => {
             <i className="bi bi-fire"></i> EuroAsia
           </Link>
 
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
+          <div className="d-flex align-items-center">
+            {/* Mobile cart button */}
+            <Link
+              to="/cart"
+              className="btn btn-outline-primary position-relative me-2 d-lg-none"
+              aria-label="Giỏ hàng"
+            >
+              <i className="bi bi-cart3"></i>
+              {getCartItemsCount() > 0 && (
+                <span className="cart-badge">{getCartItemsCount()}</span>
+              )}
+            </Link>
+
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Chuyển đổi điều hướng"
+            >
+              <span className="navbar-toggler-icon"></span>
+            </button>
+          </div>
 
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav me-auto">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" to="/">
                   Trang Chủ
@@ -47,7 +64,7 @@ const Header = () => {
               </li>
             </ul>
 
-            <form className="d-flex me-3" onSubmit={handleSearch}>
+            <form className="d-flex me-lg-3 my-2 my-lg-0" onSubmit={handleSearch}>
               <input
                 className="form-control me-2"
                 type="search"
@@ -60,10 +77,10 @@ const Header = () => {
               </button>
             </form>
 
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center my-2 my-lg-0">
               <Link
                 to="/cart"
-                className="btn btn-outline-primary position-relative me-3"
+                className="btn btn-outline-primary position-relative me-3 d-none d-lg-inline-block"
               >
                 <i className="bi bi-cart3"></i>
                 {getCartItemsCount() > 0 && (

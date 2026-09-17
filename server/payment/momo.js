@@ -11,7 +11,7 @@ async function createMomoPayment(amount, orderInfo, orderId) {
     // We use the database orderId + timestamp to keep it unique while trackable.
     const momoOrderId = orderId ? `${orderId}_${Date.now()}` : partnerCode + new Date().getTime();
     const requestId = momoOrderId;
-    const redirectUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/checkout/payment-result`;
+    const redirectUrl = `${process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/payment-result?method=momo`;
     const ipnUrl = `${process.env.BACKEND_URL || 'http://localhost:8080'}/api/payment/momo/ipn`;
     const requestType = "payWithMethod";
     const extraData = ""; // optional

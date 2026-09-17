@@ -147,8 +147,11 @@ app.post("/api/orders", (req, res) => {
       finalUserId = null;
     }
 
+    const paymentMethod = req.body.payment_method || 'cod';
+    const initialPaymentStatus = paymentMethod === 'cod' ? 'pending_cod' : 'pending';
+
     const orderSql =
-      "INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, payment_method, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)";
     db.query(
       orderSql,
       [
@@ -157,39 +160,50 @@ app.post("/api/orders", (req, res) => {
         shipping_name,
         shipping_address,
         shipping_phone,
+        paymentMethod,
+        initialPaymentStatus,
       ],
       (err, result) => {
         if (err) {
-          console.error("Lỗi khi INSERT vào bảng orders:", err);
-          return res
-            .status(500)
-            .json({ error: "Lỗi Database Orders: " + err.message });
+          // Fallback nếu database chưa migrate 2 cột payment_method, payment_status
+          const fallbackSql = "INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone) VALUES (?, ?, ?, ?, ?)";
+          db.query(fallbackSql, [finalUserId, total_amount, shipping_name, shipping_address, shipping_phone], (fallbackErr, fallbackResult) => {
+            if (fallbackErr) {
+              console.error("Lỗi khi INSERT vào bảng orders:", fallbackErr);
+              return res.status(500).json({ error: "Lỗi Database Orders: " + fallbackErr.message });
+            }
+            insertOrderItems(fallbackResult.insertId);
+          });
+          return;
         }
 
-        const orderId = result.insertId;
-        console.log("Đã tạo Order ID:", orderId);
+        insertOrderItems(result.insertId);
 
-        const itemSql =
-          "INSERT INTO order_items (order_id, product_id, product_name, quantity, price, total_price) VALUES ?";
-        const values = items.map((item) => [
-          orderId,
-          item.id,
-          item.name || "Sản phẩm",
-          item.quantity,
-          item.price,
-          item.quantity * item.price,
-        ]);
+        function insertOrderItems(orderId) {
+          console.log("Đã tạo Order ID:", orderId);
 
-        db.query(itemSql, [values], (err) => {
-          if (err) {
-            console.error("Lỗi khi INSERT vào bảng order_items:", err);
-            return res
-              .status(500)
-              .json({ error: "Lỗi Database Order Items: " + err.message });
-          }
-          console.log("Đặt hàng thành công!");
-          res.status(201).json({ message: "Đặt hàng thành công", orderId });
-        });
+          const itemSql =
+            "INSERT INTO order_items (order_id, product_id, product_name, quantity, price, total_price) VALUES ?";
+          const values = items.map((item) => [
+            orderId,
+            item.id,
+            item.name || "Sản phẩm",
+            item.quantity,
+            item.price,
+            item.quantity * item.price,
+          ]);
+
+          db.query(itemSql, [values], (err) => {
+            if (err) {
+              console.error("Lỗi khi INSERT vào bảng order_items:", err);
+              return res
+                .status(500)
+                .json({ error: "Lỗi Database Order Items: " + err.message });
+            }
+            console.log("Đặt hàng thành công!");
+            res.status(201).json({ message: "Đặt hàng thành công", orderId });
+          });
+        }
       },
     );
   });
@@ -287,11 +301,11 @@ app.post("/api/payment/vnpay/create", (req, res) => {
 
 // --- VNPAY: Return URL handler ---
 app.get("/api/payment/vnpay/return", (req, res) => {
-  const isValid = payment.verifyVnpayCallback(req.query);
+  const isValid = vnpayPayment.verifyVnpayCallback(req.query);
   const responseCode = req.query["vnp_ResponseCode"];
   const txnRef = req.query["vnp_TxnRef"] || "";
   const orderId = txnRef.split("_")[0];
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL || process.env.BASE_URL || "http://localhost:3000";
 
   if (isValid && responseCode === "00") {
     db.query(

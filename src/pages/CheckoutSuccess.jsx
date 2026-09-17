@@ -72,16 +72,17 @@ const CheckoutSuccess = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
+        padding: '24px 16px',
         fontFamily: "'Segoe UI', sans-serif",
       }}
     >
       <div
+        className="checkout-success-box"
         style={{
           background: '#fff',
-          borderRadius: 28,
+          borderRadius: 24,
           boxShadow: '0 8px 60px rgba(0,0,0,0.1)',
-          padding: '52px 44px',
+          padding: '40px 24px',
           maxWidth: 540,
           width: '100%',
           textAlign: 'center',
