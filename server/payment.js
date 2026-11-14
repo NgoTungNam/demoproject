@@ -6,9 +6,9 @@ const querystring = require('querystring');
 // MOMO PAYMENT SANDBOX CONFIG
 // ============================================================
 const MOMO_CONFIG = {
-    partnerCode: process.env.MOMO_PARTNER_CODE || 'MOMO',
-    accessKey: process.env.MOMO_ACCESS_KEY || 'F8BBA842ECF85',
-    secretKey: process.env.MOMO_SECRET_KEY || 'K951B6PE1waDMi640xX08PD3vg6EkVlz',
+    partnerCode: process.env.MOMO_PARTNER_CODE || '',
+    accessKey: process.env.MOMO_ACCESS_KEY || '',
+    secretKey: process.env.MOMO_SECRET_KEY || '',
     endpoint: 'https://test-payment.momo.vn/v2/gateway/api/create',
     redirectUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/checkout/payment-result`,
     ipnUrl: `${process.env.BACKEND_URL || 'http://localhost:8080'}/api/payment/momo/ipn`,
@@ -19,8 +19,8 @@ const MOMO_CONFIG = {
 // VNPAY PAYMENT SANDBOX CONFIG
 // ============================================================
 const VNPAY_CONFIG = {
-    tmnCode: process.env.VNP_TMNCODE || 'DEMOVNPA',
-    hashSecret: process.env.VNP_HASH_SECRET || 'RAOEXHYVSDDIIENYWSLDIIZTANXUXZTS',
+    tmnCode: process.env.VNP_TMNCODE || '',
+    hashSecret: process.env.VNP_HASH_SECRET || '',
     url: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
     returnUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/checkout/payment-result`,
     version: '2.1.0',
@@ -33,6 +33,7 @@ const VNPAY_CONFIG = {
 // MOMO: Create payment URL
 // ============================================================
 function createMomoPaymentUrl(orderId, amount, orderInfo) {
+    if (!MOMO_CONFIG.partnerCode || !MOMO_CONFIG.accessKey || !MOMO_CONFIG.secretKey) throw new Error('MoMo payment credentials are not configured.');
     const requestId = `${Date.now()}_${orderId}`;
     const extraData = '';
     const autoCapture = true;
@@ -104,6 +105,7 @@ function createMomoPaymentUrl(orderId, amount, orderInfo) {
 // MOMO: Verify IPN callback
 // ============================================================
 function verifyMomoCallback(body) {
+    if (!MOMO_CONFIG.partnerCode || !MOMO_CONFIG.accessKey || !MOMO_CONFIG.secretKey) return false;
     const {
         partnerCode, orderId, requestId, amount, orderInfo,
         orderType, transId, resultCode, message, payType,
@@ -130,13 +132,16 @@ function verifyMomoCallback(body) {
         .update(rawSignature)
         .digest('hex');
 
-    return signature === expectedSignature;
+    const received = Buffer.from(String(signature || ''), 'hex');
+    const expected = Buffer.from(expectedSignature, 'hex');
+    return received.length === expected.length && crypto.timingSafeEqual(received, expected);
 }
 
 // ============================================================
 // VNPAY: Create payment URL
 // ============================================================
 function createVnpayPaymentUrl(orderId, amount, orderDesc, ipAddr) {
+    if (!VNPAY_CONFIG.tmnCode || !VNPAY_CONFIG.hashSecret) throw new Error('VNPay payment credentials are not configured.');
     const date = new Date();
     const createDate = formatDate(date);
     const expireDate = formatDate(new Date(date.getTime() + 15 * 60 * 1000));
@@ -174,6 +179,7 @@ function createVnpayPaymentUrl(orderId, amount, orderDesc, ipAddr) {
 // VNPAY: Verify return/IPN signature
 // ============================================================
 function verifyVnpayCallback(query) {
+    if (!VNPAY_CONFIG.tmnCode || !VNPAY_CONFIG.hashSecret) return false;
     const secureHash = query['vnp_SecureHash'];
     const params = { ...query };
     delete params['vnp_SecureHash'];
@@ -184,7 +190,9 @@ function verifyVnpayCallback(query) {
     const hmac = crypto.createHmac('sha512', VNPAY_CONFIG.hashSecret);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    return signed === secureHash;
+    const received = Buffer.from(String(secureHash || ''), 'hex');
+    const expected = Buffer.from(signed, 'hex');
+    return received.length === expected.length && crypto.timingSafeEqual(received, expected);
 }
 
 // ============================================================

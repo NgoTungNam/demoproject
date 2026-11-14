@@ -1,5 +1,7 @@
 # Database Schema Design for EuroAsia Project
 
+> Runtime schema is initialized by `server/schema.js`; payment and e-commerce changes are handled by `server/migrate_payment.js` and `server/migrate_ecommerce_features.js`. Use `npm run db:init` and the migration commands in README for new databases. This document is a legacy reference for the core tables.
+
 Dựa trên cấu trúc frontend hiện tại, dưới đây là thiết kế database MySQL đề xuất.
 
 ## 1. Entity Relationship Diagram (ERD) Flow

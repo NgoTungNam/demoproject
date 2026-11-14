@@ -1,6 +1,6 @@
 const db = require('./db');
 
-const tables = ['users', 'categories', 'products', 'orders', 'order_items'];
+const tables = ['users', 'categories', 'products', 'orders', 'order_items', 'reviews', 'flash_sales', 'flash_sale_items'];
 
 console.log('--- KIỂM TRA TRẠNG THÁI DATABASE ---');
 

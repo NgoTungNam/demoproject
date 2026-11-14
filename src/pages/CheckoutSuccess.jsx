@@ -13,8 +13,8 @@ const methodConfig = {
   },
   bank: {
     icon: '💳',
-    color: '#6366f1',
-    bg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
+    color: '#d32f2f',
+    bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
     title: 'Đơn Hàng Đã Được Ghi Nhận!',
     subtitle: 'Vui lòng hoàn tất chuyển khoản để xác nhận đơn hàng.',
     detail: null, // will render bank info block
@@ -224,7 +224,7 @@ const CheckoutSuccess = () => {
             style={{
               display: 'block',
               padding: '14px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
               color: '#fff',
               borderRadius: 12,
               fontWeight: 800,
@@ -255,7 +255,7 @@ const CheckoutSuccess = () => {
         {method !== 'bank' && (
           <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: 16 }}>
             Tự động chuyển về trang chủ sau{' '}
-            <strong style={{ color: '#6366f1' }}>{count}s</strong>
+            <strong style={{ color: '#d32f2f' }}>{count}s</strong>
           </p>
         )}
 

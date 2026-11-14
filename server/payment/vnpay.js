@@ -18,9 +18,10 @@ function sortObject(obj) {
 }
 
 function createVnpayPayment(amount, orderInfo, ipAddr, orderId) {
-    const tmnCode = process.env.VNP_TMNCODE || 'DEMOVNPA';
-    const hashSecret = process.env.VNP_HASH_SECRET || 'RAOEXHYVSDDIIENYWSLDIIZTANXUXZTS';
-    const vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+    const tmnCode = process.env.VNP_TMNCODE;
+    const hashSecret = process.env.VNP_HASH_SECRET;
+    if (!tmnCode || !hashSecret) throw new Error('VNPay payment credentials are not configured.');
+    const vnpUrl = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
     const returnUrl = `${process.env.BACKEND_URL || 'http://localhost:8080'}/api/payment/vnpay/return`;
 
     const date = new Date();
@@ -50,13 +51,11 @@ function createVnpayPayment(amount, orderInfo, ipAddr, orderId) {
     vnp_Params['vnp_SecureHash'] = signed;
     const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
 
-    console.log('[VNPay] signData:', signData);
-    console.log('[VNPay] signed:', signed);
-    console.log('[VNPay] finalUrl:', finalUrl);
     return { paymentUrl: finalUrl };
 }
 
 function verifyVnpayCallback(query) {
+    if (!process.env.VNP_TMNCODE || !process.env.VNP_HASH_SECRET) return false;
     const secureHash = query['vnp_SecureHash'];
     const params = { ...query };
     delete params['vnp_SecureHash'];
@@ -64,11 +63,13 @@ function verifyVnpayCallback(query) {
 
     const sortedParams = sortObject(params);
     const signData = qs.stringify(sortedParams, { encode: false });
-    const hashSecret = process.env.VNP_HASH_SECRET || 'RAOEXHYVSDDIIENYWSLDIIZTANXUXZTS';
+    const hashSecret = process.env.VNP_HASH_SECRET;
     const hmac = crypto.createHmac('sha512', hashSecret);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    return signed === secureHash;
+    const received = Buffer.from(String(secureHash || ''), 'hex');
+    const expected = Buffer.from(signed, 'hex');
+    return received.length === expected.length && crypto.timingSafeEqual(received, expected);
 }
 
 function formatDate(date, withMs = false) {

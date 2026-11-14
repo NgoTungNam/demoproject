@@ -7,11 +7,10 @@ export const paymentService = {
   /**
    * Tạo URL thanh toán MoMo rồi redirect
    */
-  async payWithMomo(orderId, amount, orderInfo) {
-    console.log('[paymentService] payWithMomo:', { orderId, amount });
+  async payWithMomo(orderId, checkoutToken, orderInfo) {
     const { data } = await axios.post(`${API_BASE}/momo/create`, {
       orderId,
-      amount,
+      checkout_token: checkoutToken,
       orderInfo,
     })
     if (data.success && data.payUrl) {
@@ -24,11 +23,10 @@ export const paymentService = {
   /**
    * Tạo URL thanh toán VNPay rồi redirect
    */
-  async payWithVnpay(orderId, amount, orderInfo) {
-    console.log('[paymentService] payWithVnpay:', { orderId, amount });
+  async payWithVnpay(orderId, checkoutToken, orderInfo) {
     const { data } = await axios.post(`${API_BASE}/vnpay/create`, {
       orderId,
-      amount,
+      checkout_token: checkoutToken,
       orderInfo,
     })
     if (data.success && data.paymentUrl) {

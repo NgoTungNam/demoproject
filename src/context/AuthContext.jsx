@@ -12,71 +12,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token and user on mount
     const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse user data", error);
+    if (token) {
+      authAPI.getCurrentUser().then(({ data }) => {
+        const currentUser = { ...data, token };
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        setUser(currentUser);
+      }).catch(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-      }
-    }
-    setLoading(false);
+      }).finally(() => setLoading(false));
+    } else setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      // Mocking login for now if API fails or for demo
-      // In a real scenario: const response = await authAPI.login({ email, password });
-
-      // Simulating a successful login response
-      // For demo purposes: Admin login
-      let userData;
-      if (email === 'admin@gmail.com' && password === '123456') {
-        userData = {
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@gmail.com',
-          role: 'admin',
-          token: 'mock-admin-token'
-        };
-      } else {
-        // Default customer login
-        userData = {
-          id: 2,
-          name: 'Customer User',
-          email: email,
-          role: 'customer',
-          token: 'mock-customer-token'
-        };
-      }
-
-      // Save to local storage
+      const { data } = await authAPI.login({ email, password });
+      const userData = data;
       localStorage.setItem('token', userData.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      return { success: true };
+      return { success: true, user: userData };
     } catch (error) {
-      console.error("Login failed", error);
       return { success: false, message: error.response?.data?.message || 'Login failed' };
     }
   };
 
   const register = async (name, email, password) => {
     try {
-      // await authAPI.register({ name, email, password });
-      // Auto login after register mock
-      const userData = {
-        id: Date.now(),
-        name: name,
-        email: email,
-        role: 'customer',
-        token: `mock-token-${Date.now()}`
-      };
+      const { data: userData } = await authAPI.register({ name, email, password });
       localStorage.setItem('token', userData.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);

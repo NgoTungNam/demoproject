@@ -29,31 +29,7 @@ const Products = () => {
         setCategories(categoriesRes.data || [])
       } catch (error) {
         console.error('Error fetching products:', error)
-        // Fallback data for demo
-        setProducts([
-          { 
-            id: 1, 
-            name: 'Bộ dao bếp cao cấp EuroAsia', 
-            price: 2500000, 
-            image_url: '/images/products/dao.jpg', 
-            description: 'Bộ dao bếp cao cấp EuroAsia với chất liệu thép không gỉ, tay cầm chắc chắn, phù hợp cho mọi công việc trong bếp' 
-          },
-          { 
-            id: 2, 
-            name: 'Nồi hấp inox đa năng', 
-            price: 1200000, 
-            image_url: '/images/products/noiinox.jpg', 
-            description: 'Nồi hấp đa tầng bằng inox 304 cao cấp, thiết kế nhiều tầng tiện lợi, tay cầm chắc chắn, an toàn sức khỏe' 
-          },
-          { 
-            id: 3, 
-            name: 'Chảo chống dính', 
-            price: 300000, 
-            image_url: '/images/products/chao.jpg', 
-            description: 'Chảo chống dính không độc hại, an toàn cho sức khỏe' 
-          },
-        ])
-        // setProducts([])
+        setProducts([])
       } finally {
         setLoading(false)
       }

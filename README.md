@@ -31,7 +31,7 @@ Website bán hàng dụng cụ bếp EuroAsia là một ứng dụng Fullstack h
 ## ⚙️ Cài Đặt & Khởi Chạy
 
 ### 1. Yêu Cầu Hệ Thống
-- Đã cài đặt **Node.js** (v16 trở lên).
+- Đã cài đặt **Node.js** (v18 trở lên; backend dùng `fetch` và API Web tích hợp sẵn).
 - Đã cài đặt **MySQL** (Khuyên dùng XAMPP).
 
 ### 2. Thiết Lập Database
@@ -44,6 +44,18 @@ Website bán hàng dụng cụ bếp EuroAsia là một ứng dụng Fullstack h
 # Cài đặt các thư viện cần thiết
 npm install
 ```
+
+Copy `.env.example` to `.env`, then set MySQL connection values and a unique `AUTH_TOKEN_SECRET` (at least 32 random characters). Configure `GEMINI_API_KEY` to enable AI advice. Payment credentials are optional; MoMo and VNPay remain unavailable until their real credentials are configured.
+
+For a new database, run these commands once:
+
+```bash
+npm run db:init
+npm run migrate
+npm run migrate:ecommerce
+```
+
+Create or reset an administrator account by setting `ADMIN_EMAIL` and a strong `ADMIN_PASSWORD` (12+ characters) in `.env`, then run `npm run admin:create`. The e-commerce migration only creates/updates schema; it does not add sample reviews or flash sales.
 
 ### 4. Khởi Chạy Ứng Dụng
 
@@ -77,9 +89,9 @@ npm run dev
 └── database_schema.md  # Hướng dẫn tạo bảng MySQL
 ```
 
-## 🔐 Tài Khoản Demo (Admin)
-- **Email**: `admin@gmail.com`
-- **Mật khẩu**: `123456`
+## Tạo tài khoản quản trị
+
+Đăng ký tài khoản khách hàng qua trang Register. Để cấp quyền admin, đặt `ADMIN_EMAIL` và `ADMIN_PASSWORD` (tối thiểu 12 ký tự) trong `.env`, sau đó chạy `npm run admin:create`. Không có mật khẩu admin mặc định.
 
 ---
 

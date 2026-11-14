@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import api from '../services/api'
 
 const methodLabel = {
   momo: { name: 'Ví MoMo', icon: '💜', color: '#d63384' },
   vnpay: { name: 'Cổng VNPay', icon: '🏦', color: '#f59e0b' },
   cod: { name: 'Thanh toán khi nhận hàng', icon: '🚚', color: '#10b981' },
-  bank: { name: 'Chuyển khoản ngân hàng', icon: '💳', color: '#6366f1' },
+  bank: { name: 'Chuyển khoản ngân hàng', icon: '💳', color: '#d32f2f' },
 }
 
 const PaymentResult = () => {
@@ -16,18 +17,6 @@ const PaymentResult = () => {
   const momoResultCode = params.get('resultCode')
   const vnpResponseCode = params.get('vnp_ResponseCode')
   const statusParam = params.get('status')
-
-  // Kiểm tra trạng thái thanh toán
-  let isSuccess = false
-  if (momoResultCode !== null) {
-    isSuccess = momoResultCode === '0'
-  } else if (vnpResponseCode !== null) {
-    isSuccess = vnpResponseCode === '00'
-  } else if (statusParam !== null) {
-    isSuccess = statusParam === 'success'
-  } else {
-    isSuccess = true
-  }
 
   // Tự động nhận diện method nếu không có param method
   let method = params.get('method')
@@ -44,13 +33,50 @@ const PaymentResult = () => {
   const rawOrderId = params.get('orderId') || params.get('vnp_TxnRef')
   const orderId = rawOrderId ? rawOrderId.split('_')[0] : null
   const m = methodLabel[method] || methodLabel.cod
+  const explicitFailure = (momoResultCode !== null && momoResultCode !== '0') ||
+    (vnpResponseCode !== null && vnpResponseCode !== '00') || statusParam === 'failed'
+  const [verifiedPaid, setVerifiedPaid] = useState(false)
+  const isSuccess = verifiedPaid
+  const isPending = !isSuccess && !explicitFailure
 
-  // Nếu thanh toán thành công, xóa giỏ hàng
+  // Payment success is determined by the backend gateway callback or verification endpoint
   useEffect(() => {
-    if (isSuccess) {
-      clearCart()
+    if (!orderId || explicitFailure) return undefined
+
+    // If MoMo returns with resultCode=0, trigger verify-return to update status
+    if (method === 'momo' && momoResultCode === '0') {
+      api.post('/payment/momo/verify-return', {
+        orderId: rawOrderId,
+        resultCode: momoResultCode,
+        transId: params.get('transId'),
+        amount: params.get('amount')
+      }).then(() => {
+        setVerifiedPaid(true)
+        clearCart()
+      }).catch(err => {
+        console.error('Verify momo return error:', err)
+      })
     }
-  }, [isSuccess])
+
+    let attempts = 0
+    let timer
+    const checkStatus = async () => {
+      try {
+        const { data } = await api.get(`/orders/${orderId}/payment-status`)
+        if (data.payment_status === 'paid') {
+          setVerifiedPaid(true)
+          clearCart()
+          clearInterval(timer)
+          return
+        }
+      } catch {}
+      attempts += 1
+      if (attempts >= 30) clearInterval(timer)
+    }
+    checkStatus()
+    timer = setInterval(checkStatus, 2000)
+    return () => clearInterval(timer)
+  }, [orderId, explicitFailure, method, momoResultCode, rawOrderId])
 
   const [count, setCount] = useState(8)
   useEffect(() => {
@@ -74,7 +100,7 @@ const PaymentResult = () => {
         minHeight: '100vh',
         background: isSuccess
           ? 'linear-gradient(135deg, #e0ffe8 0%, #d1fae5 100%)'
-          : 'linear-gradient(135deg, #ffe0e0 0%, #fecaca 100%)',
+          : isPending ? '#f3f4f6' : 'linear-gradient(135deg, #ffe0e0 0%, #fecaca 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -102,7 +128,7 @@ const PaymentResult = () => {
             animation: 'bounce 0.6s ease',
           }}
         >
-          {isSuccess ? '🎉' : '❌'}
+          {isSuccess ? '🎉' : isPending ? '⏳' : '❌'}
         </div>
 
         {/* Status */}
@@ -110,11 +136,11 @@ const PaymentResult = () => {
           style={{
             fontWeight: 900,
             fontSize: '1.9rem',
-            color: isSuccess ? '#059669' : '#dc2626',
+            color: isSuccess ? '#059669' : isPending ? '#475569' : '#dc2626',
             marginBottom: 8,
           }}
         >
-          {isSuccess ? 'Thanh Toán Thành Công!' : 'Thanh Toán Thất Bại'}
+          {isSuccess ? 'Thanh Toán Thành Công!' : isPending ? 'Đang xác nhận thanh toán' : 'Thanh Toán Thất Bại'}
         </h1>
 
         <p
@@ -127,7 +153,8 @@ const PaymentResult = () => {
         >
           {isSuccess
             ? 'Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị.'
-            : 'Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức khác.'}
+            : isPending ? 'Cổng thanh toán đang gửi kết quả. Trang sẽ tự cập nhật khi nhận xác nhận.'
+              : 'Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức khác.'}
         </p>
 
         {/* Info card */}
@@ -205,7 +232,7 @@ const PaymentResult = () => {
                 style={{
                   display: 'block',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
                   color: '#fff',
                   borderRadius: 12,
                   fontWeight: 800,
@@ -233,28 +260,29 @@ const PaymentResult = () => {
               </Link>
               <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: 4 }}>
                 Tự động chuyển về trang chủ sau{' '}
-                <strong style={{ color: '#6366f1' }}>{count}s</strong>
+                <strong style={{ color: '#d32f2f' }}>{count}s</strong>
               </p>
             </>
           ) : (
             <>
               <Link
-                to="/checkout"
+                to="/cart"
                 style={{
                   display: 'block',
                   padding: '14px',
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
                   color: '#fff',
                   borderRadius: 12,
                   fontWeight: 800,
                   textDecoration: 'none',
                   fontSize: '1rem',
+                  boxShadow: '0 4px 14px rgba(211, 47, 47, 0.3)',
                 }}
               >
-                🔄 Thử Lại Thanh Toán
+                🛒 Quay Lại Giỏ Hàng
               </Link>
               <Link
-                to="/cart"
+                to="/"
                 style={{
                   display: 'block',
                   padding: '14px',
@@ -266,7 +294,7 @@ const PaymentResult = () => {
                   fontSize: '0.95rem',
                 }}
               >
-                🛒 Quay Lại Giỏ Hàng
+                🏠 Về Trang Chủ
               </Link>
             </>
           )}

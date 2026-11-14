@@ -26,11 +26,7 @@ const Login = () => {
         try {
             const result = await login(formData.email, formData.password);
             if (result.success) {
-                // Retrieve fresh user info to decide where to go
-                // In a real app we might need to wait for state update or check the returned user obj
-                // Since we are mocking, we know the logic:
-                // admin@gmail.com is admin
-                if (formData.email === 'admin@gmail.com') {
+                if (result.user?.role === 'admin') {
                     navigate('/admin/dashboard');
                 } else {
                     navigate(from);
@@ -89,9 +85,7 @@ const Login = () => {
                                 Don't have an account? <Link to="/register">Register here</Link>
                             </div>
                             <div className="mt-3 alert alert-info small">
-                                <strong>Demo Credentials:</strong><br />
-                                Admin: admin@gmail.com / 123456<br />
-                                User: user@gmail.com / 123456
+                                Create a customer account from Register. Admin access is configured by the site operator.
                             </div>
                         </div>
                     </div>

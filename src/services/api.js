@@ -28,7 +28,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || ''
+    const isAuthRequest = /\/auth\/(login|register)(\?|$)/.test(requestUrl)
+    if (error.response?.status === 401 && error.config?.headers?.Authorization && !isAuthRequest) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
@@ -42,17 +44,25 @@ export const productAPI = {
   getById: (id) => api.get(`/products/${id}`),
   getByCategory: (categoryId) => api.get(`/products`, { params: { categoryId } }),
   search: (keyword) => api.get(`/products/search`, { params: { q: keyword } }),
+  quotePrices: (items) => api.post('/prices/quote', { items }),
   create: (formData) => api.post('/products', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   }),
+  update: (id, formData) => api.put(`/products/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  delete: (id) => api.delete(`/products/${id}`),
 }
 
 // Category APIs
 export const categoryAPI = {
   getAll: () => api.get('/categories'),
   getById: (id) => api.get(`/categories/${id}`),
+  create: (data) => api.post('/categories', data),
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  delete: (id) => api.delete(`/categories/${id}`),
 }
 
 // Cart APIs
@@ -77,6 +87,11 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   logout: () => api.post('/auth/logout'),
   getCurrentUser: () => api.get('/auth/me'),
+}
+
+// Chatbot APIs
+export const chatAPI = {
+  sendMessage: (message, history = []) => api.post('/chat', { message, history }),
 }
 
 export default api

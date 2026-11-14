@@ -6,54 +6,47 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState({ revenue: 0, orders: 0, customers: 0, products: 0 });
     const [recentOrders, setRecentOrders] = useState([]);
     const [topProducts, setTopProducts] = useState([]);
-
-    useEffect(() => {
-        setStats({ revenue: 24580, orders: 128, customers: 312, products: 45 });
-        setRecentOrders([
-            { id: 101, customer: 'Nguyễn Văn A', date: '2024-05-01', total: 1500000, status: 'Delivered' },
-            { id: 102, customer: 'Trần Thị B', date: '2024-05-01', total: 850000, status: 'Processing' },
-            { id: 103, customer: 'Lê Văn C', date: '2024-04-30', total: 2000000, status: 'Pending' },
-            { id: 104, customer: 'Phạm Thị D', date: '2024-04-30', total: 650000, status: 'Delivered' },
-            { id: 105, customer: 'Hoàng Văn E', date: '2024-04-29', total: 1200000, status: 'Cancelled' },
-        ]);
-        setTopProducts([
-            { name: 'Tủ bếp gỗ sồi', sales: 42, revenue: 8400000 },
-            { name: 'Kệ TV hiện đại', sales: 36, revenue: 5400000 },
-            { name: 'Bàn ăn 6 ghế', sales: 28, revenue: 6720000 },
-            { name: 'Giường ngủ King', sales: 21, revenue: 7350000 },
-        ]);
-    }, []);
+    const [weeklyData, setWeeklyData] = useState([0, 0, 0, 0, 0, 0, 0]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadRecentOrders = async () => {
+        const loadDashboardData = async () => {
             try {
-                const { data } = await api.get('/orders/admin');
+                const res = await api.get('/dashboard/stats');
                 if (!isMounted) return;
 
-                setRecentOrders(data.slice(0, 5).map((order) => ({
-                    id: order.id,
-                    customer: order.shipping_name || order.user_name || 'Khách vãng lai',
-                    date: order.created_at ? new Date(order.created_at).toLocaleDateString('vi-VN') : '—',
-                    total: Number(order.total_amount || 0),
-                    status: order.status || 'pending',
+                const data = res.data;
+                setStats({
+                    revenue: data.revenue || 0,
+                    orders: data.orders || 0,
+                    customers: data.customers || 0,
+                    products: data.products || 0,
+                });
+
+                setRecentOrders(data.recentOrders || []);
+
+                const maxQty = data.topProducts && data.topProducts.length > 0 
+                    ? Math.max(...data.topProducts.map(p => Number(p.quantity || 1))) 
+                    : 1;
+
+                setTopProducts((data.topProducts || []).map((p) => ({
+                    name: p.name,
+                    price: Number(p.revenue || 0),
+                    stock: Number(p.quantity || 0),
+                    ratio: (Number(p.quantity || 0) / maxQty) * 100,
                 })));
 
-                setStats((current) => ({
-                    ...current,
-                    orders: data.length,
-                    revenue: data
-                        .filter((order) => order.payment_status === 'paid')
-                        .reduce((sum, order) => sum + Number(order.total_amount || 0), 0) / 1000,
-                }));
+                setWeeklyData(data.weekly || [0, 0, 0, 0, 0, 0, 0]);
             } catch (error) {
-                console.error('Could not load recent orders:', error);
-                if (isMounted) setRecentOrders([]);
+                console.error('Dashboard data load error:', error);
+            } finally {
+                if (isMounted) setLoading(false);
             }
         };
 
-        loadRecentOrders();
+        loadDashboardData();
         return () => { isMounted = false; };
     }, []);
 
@@ -64,10 +57,6 @@ const AdminDashboard = () => {
             shipped: { bg: '#e0f2fe', color: '#0284c7', label: 'Đang giao' },
             delivered: { bg: '#dcfce7', color: '#16a34a', label: 'Đã giao' },
             cancelled: { bg: '#fee2e2', color: '#dc2626', label: 'Đã huỷ' },
-            Delivered: { bg: '#dcfce7', color: '#16a34a', label: 'Đã giao' },
-            Processing: { bg: '#dbeafe', color: '#2563eb', label: 'Đang xử lý' },
-            Pending: { bg: '#fef9c3', color: '#ca8a04', label: 'Chờ xác nhận' },
-            Cancelled: { bg: '#fee2e2', color: '#dc2626', label: 'Đã huỷ' },
         };
         const s = map[status] || { bg: '#f3f4f6', color: '#6b7280', label: status };
         return (
@@ -79,18 +68,26 @@ const AdminDashboard = () => {
         );
     };
 
-    const formatCurrency = (v) => v.toLocaleString('vi-VN') + ' ₫';
+    const formatCurrency = (v) => new Intl.NumberFormat('vi-VN').format(v) + ' ₫';
 
     const statCards = [
-        { label: 'Doanh Thu', value: formatCurrency(stats.revenue * 1000), icon: '💰', gradient: 'linear-gradient(135deg,#667eea,#764ba2)', change: '+12.5%' },
-        { label: 'Đơn Hàng', value: stats.orders, icon: '📦', gradient: 'linear-gradient(135deg,#f093fb,#f5576c)', change: '+8.2%' },
-        { label: 'Khách Hàng', value: stats.customers, icon: '👥', gradient: 'linear-gradient(135deg,#4facfe,#00f2fe)', change: '+15.3%' },
-        { label: 'Sản Phẩm', value: stats.products, icon: '🛋️', gradient: 'linear-gradient(135deg,#43e97b,#38f9d7)', change: '+3.1%' },
+        { label: 'Tổng Doanh Thu', value: formatCurrency(stats.revenue), icon: '💰', gradient: 'linear-gradient(135deg,#667eea,#764ba2)' },
+        { label: 'Đơn Hàng', value: stats.orders, icon: '📦', gradient: 'linear-gradient(135deg,#f093fb,#f5576c)' },
+        { label: 'Khách Hàng', value: stats.customers, icon: '👥', gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)' },
+        { label: 'Sản Phẩm', value: stats.products, icon: '🍳', gradient: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
     ];
 
-    const weeklyData = [65, 45, 80, 55, 90, 70, 85];
     const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-    const maxVal = Math.max(...weeklyData);
+    const maxVal = Math.max(...weeklyData, 1);
+
+    if (loading) {
+        return (
+            <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af' }}>
+                <div className="spinner-border text-primary" role="status"></div>
+                <p style={{ marginTop: 12 }}>Đang tải dữ liệu dashboard...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-dashboard" style={{ fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
@@ -119,11 +116,6 @@ const AdminDashboard = () => {
                         <div style={{ fontSize: '32px', marginBottom: '8px' }}>{card.icon}</div>
                         <div style={{ fontSize: '28px', fontWeight: 700, lineHeight: 1 }}>{card.value}</div>
                         <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '6px' }}>{card.label}</div>
-                        <div style={{
-                            marginTop: '12px', background: 'rgba(255,255,255,0.25)',
-                            display: 'inline-block', padding: '2px 8px',
-                            borderRadius: '12px', fontSize: '12px', fontWeight: 600
-                        }}>{card.change} so với tháng trước</div>
                     </div>
                 ))}
             </div>
@@ -139,9 +131,10 @@ const AdminDashboard = () => {
                                 <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{val}</span>
                                 <div style={{
                                     width: '100%', height: `${(val / maxVal) * 110}px`,
-                                    background: 'linear-gradient(180deg,#667eea,#764ba2)',
+                                    background: val > 0 ? 'linear-gradient(180deg,#667eea,#764ba2)' : '#f1f5f9',
                                     borderRadius: '6px 6px 0 0',
-                                    transition: 'height 0.5s ease'
+                                    transition: 'height 0.5s ease',
+                                    minHeight: '4px',
                                 }} />
                                 <span style={{ fontSize: '11px', color: '#94a3b8' }}>{weekDays[i]}</span>
                             </div>
@@ -151,24 +144,28 @@ const AdminDashboard = () => {
 
                 {/* Top Products */}
                 <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                    <h5 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '16px' }}>🏆 Sản phẩm bán chạy</h5>
-                    {topProducts.map((p, i) => (
-                        <div key={i} style={{ marginBottom: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>{p.name}</span>
-                                <span style={{ fontSize: '12px', color: '#64748b' }}>{p.sales} đơn</span>
+                    <h5 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '16px' }}>🏆 Sản phẩm giá trị cao</h5>
+                    {topProducts.length === 0 ? (
+                        <p style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Chưa có sản phẩm</p>
+                    ) : (
+                        topProducts.map((p, i) => (
+                            <div key={i} style={{ marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>{p.name}</span>
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>{formatCurrency(p.price)}</span>
+                                </div>
+                                <div style={{ background: '#f1f5f9', borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
+                                    <div style={{
+                                        width: `${p.ratio}%`,
+                                        height: '100%',
+                                        background: 'linear-gradient(90deg,#667eea,#764ba2)',
+                                        borderRadius: '8px',
+                                        transition: 'width 0.8s ease'
+                                    }} />
+                                </div>
                             </div>
-                            <div style={{ background: '#f1f5f9', borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
-                                <div style={{
-                                    width: `${(p.sales / 42) * 100}%`,
-                                    height: '100%',
-                                    background: 'linear-gradient(90deg,#667eea,#764ba2)',
-                                    borderRadius: '8px',
-                                    transition: 'width 0.8s ease'
-                                }} />
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -184,33 +181,37 @@ const AdminDashboard = () => {
                     }}>Xem tất cả →</Link>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                                {['Mã đơn', 'Khách hàng', 'Ngày đặt', 'Tổng tiền', 'Trạng thái'].map(h => (
-                                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '12px', textTransform: 'uppercase' }}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentOrders.map((order, i) => (
-                                <tr key={order.id} style={{
-                                    borderBottom: '1px solid #f8fafc',
-                                    background: i % 2 === 0 ? '#fff' : '#fafbff',
-                                    transition: 'background 0.15s'
-                                }}
-                                    onMouseEnter={e => e.currentTarget.style.background = '#f0f4ff'}
-                                    onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#fafbff'}
-                                >
-                                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#667eea' }}>#{order.id}</td>
-                                    <td style={{ padding: '12px 14px', fontWeight: 500 }}>{order.customer}</td>
-                                    <td style={{ padding: '12px 14px', color: '#64748b' }}>{order.date}</td>
-                                    <td style={{ padding: '12px 14px', fontWeight: 700 }}>{formatCurrency(order.total)}</td>
-                                    <td style={{ padding: '12px 14px' }}>{getStatusBadge(order.status)}</td>
+                    {recentOrders.length === 0 ? (
+                        <p style={{ color: '#9ca3af', textAlign: 'center', padding: 24 }}>Chưa có đơn hàng nào</p>
+                    ) : (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                                    {['Mã đơn', 'Khách hàng', 'Ngày đặt', 'Tổng tiền', 'Trạng thái'].map(h => (
+                                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '12px', textTransform: 'uppercase' }}>{h}</th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {recentOrders.map((order, i) => (
+                                    <tr key={order.id} style={{
+                                        borderBottom: '1px solid #f8fafc',
+                                        background: i % 2 === 0 ? '#fff' : '#fafbff',
+                                        transition: 'background 0.15s'
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.background = '#f0f4ff'}
+                                        onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#fafbff'}
+                                    >
+                                        <td style={{ padding: '12px 14px', fontWeight: 700, color: '#667eea' }}>#{order.id}</td>
+                                        <td style={{ padding: '12px 14px', fontWeight: 500 }}>{order.customer}</td>
+                                        <td style={{ padding: '12px 14px', color: '#64748b' }}>{order.date}</td>
+                                        <td style={{ padding: '12px 14px', fontWeight: 700 }}>{formatCurrency(order.total)}</td>
+                                        <td style={{ padding: '12px 14px' }}>{getStatusBadge(order.status)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
         </div>

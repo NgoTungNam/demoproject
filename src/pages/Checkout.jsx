@@ -136,7 +136,7 @@ const styles = {
   },
   orderItemName: { fontWeight: 600, fontSize: '0.88rem', color: '#1a1a2e' },
   orderItemSub: { fontSize: '0.78rem', color: '#9ca3af' },
-  orderItemPrice: { marginLeft: 'auto', fontWeight: 700, color: '#6366f1', fontSize: '0.9rem' },
+  orderItemPrice: { marginLeft: 'auto', fontWeight: 700, color: '#d32f2f', fontSize: '0.9rem' },
 
   totalRow: {
     display: 'flex',
@@ -145,7 +145,7 @@ const styles = {
     padding: '14px 0',
   },
   totalLabel: { fontWeight: 600, color: '#374151' },
-  totalValue: { fontWeight: 800, fontSize: '1.3rem', color: '#6366f1' },
+  totalValue: { fontWeight: 800, fontSize: '1.3rem', color: '#d32f2f' },
 
   /* Submit button */
   submitBtn: (loading) => ({
@@ -155,7 +155,7 @@ const styles = {
     border: 'none',
     background: loading
       ? '#9ca3af'
-      : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+      : 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
     color: '#fff',
     fontWeight: 800,
     fontSize: '1.05rem',
@@ -219,7 +219,7 @@ const PAYMENT_METHODS = [
     label: 'Chuyển khoản ngân hàng',
     short: 'Bank transfer',
     icon: '💳',
-    color: '#6366f1',
+    color: '#d32f2f',
     desc: 'Chuyển khoản thủ công',
   },
 ]
@@ -227,7 +227,7 @@ const PAYMENT_METHODS = [
 /* ─── Component ─────────────────────────────────────────── */
 const Checkout = () => {
   const navigate = useNavigate()
-  const { cartItems, getCartTotal, clearCart } = useCart()
+  const { cartItems, getCartTotal, clearCart, refreshCartPrices } = useCart()
 
   const [form, setForm] = useState({
     fullName: '',
@@ -247,7 +247,8 @@ const Checkout = () => {
   const getImageUrl = (url) => {
     if (!url) return 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=200&q=80&auto=format&fit=crop'
     if (url.startsWith('http')) return url
-    return `${API_BASE_URL}${url}`
+    if (url.startsWith('/')) return url
+    return `${API_BASE_URL}/${url}`
   }
 
   const handleChange = (e) =>
@@ -292,9 +293,11 @@ const Checkout = () => {
         })),
       }
 
+      await refreshCartPrices()
       console.log('[Checkout] Gửi đơn hàng:', orderData);
       const orderRes = await orderAPI.create(orderData)
       const orderId = orderRes.data.orderId
+      // The backend recalculates prices from MySQL (including eligible Flash Sale prices).
 
       // 2. Xử lý theo phương thức thanh toán
       if (paymentMethod === 'cod') {
@@ -305,9 +308,10 @@ const Checkout = () => {
         navigate(`/checkout/success?method=bank&orderId=${orderId}`)
       } else if (paymentMethod === 'momo') {
         try {
+          clearCart()
           await paymentService.payWithMomo(
             orderId,
-            totalAmount,
+            orderRes.data.checkout_token,
             `Thanh toan don hang #${orderId} - EuroAsia Kitchen`
           )
         } catch (err) {
@@ -316,9 +320,10 @@ const Checkout = () => {
         }
       } else if (paymentMethod === 'vnpay') {
         try {
+          clearCart()
           await paymentService.payWithVnpay(
             orderId,
-            totalAmount,
+            orderRes.data.checkout_token,
             `Thanh toan don hang #${orderId}`
           )
         } catch (err) {
@@ -353,7 +358,7 @@ const Checkout = () => {
               display: 'inline-block',
               marginTop: 12,
               padding: '12px 32px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
               color: '#fff',
               borderRadius: 12,
               fontWeight: 700,
@@ -394,7 +399,7 @@ const Checkout = () => {
                   <input
                     style={{
                       ...styles.input,
-                      borderColor: focusedField === 'fullName' ? '#6366f1' : '#e5e7eb',
+                      borderColor: focusedField === 'fullName' ? '#d32f2f' : '#e5e7eb',
                     }}
                     type="text"
                     name="fullName"
@@ -412,7 +417,7 @@ const Checkout = () => {
                     <input
                       style={{
                         ...styles.input,
-                        borderColor: focusedField === 'email' ? '#6366f1' : '#e5e7eb',
+                        borderColor: focusedField === 'email' ? '#d32f2f' : '#e5e7eb',
                       }}
                       type="email"
                       name="email"
@@ -429,7 +434,7 @@ const Checkout = () => {
                     <input
                       style={{
                         ...styles.input,
-                        borderColor: focusedField === 'phone' ? '#6366f1' : '#e5e7eb',
+                        borderColor: focusedField === 'phone' ? '#d32f2f' : '#e5e7eb',
                       }}
                       type="tel"
                       name="phone"
@@ -447,7 +452,7 @@ const Checkout = () => {
                   <input
                     style={{
                       ...styles.input,
-                      borderColor: focusedField === 'address' ? '#6366f1' : '#e5e7eb',
+                      borderColor: focusedField === 'address' ? '#d32f2f' : '#e5e7eb',
                     }}
                     type="text"
                     name="address"
@@ -464,7 +469,7 @@ const Checkout = () => {
                   <input
                     style={{
                       ...styles.input,
-                      borderColor: focusedField === 'city' ? '#6366f1' : '#e5e7eb',
+                      borderColor: focusedField === 'city' ? '#d32f2f' : '#e5e7eb',
                     }}
                     type="text"
                     name="city"
@@ -481,7 +486,7 @@ const Checkout = () => {
                   <textarea
                     style={{
                       ...styles.input,
-                      borderColor: focusedField === 'notes' ? '#6366f1' : '#e5e7eb',
+                      borderColor: focusedField === 'notes' ? '#d32f2f' : '#e5e7eb',
                       resize: 'vertical',
                       minHeight: 80,
                     }}
@@ -603,14 +608,17 @@ const Checkout = () => {
                         alt={item.name}
                         style={styles.orderImg}
                         onError={(e) => {
-                          e.target.src =
-                            'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=200&q=80&auto=format&fit=crop'
+                          e.target.onerror = null
+                          e.target.src = '/images/products/noiinox.jpg'
                         }}
                       />
                       <div>
                         <div style={styles.orderItemName}>{item.name}</div>
                         <div style={styles.orderItemSub}>
-                          {formatPrice(item.price)} × {item.quantity}
+                          {formatPrice(item.current_price ?? item.price)} × {item.quantity}
+                          {Number(item.original_price) > Number(item.current_price ?? item.price) && (
+                            <span className="text-muted text-decoration-line-through ms-2">{formatPrice(item.original_price)}</span>
+                          )}
                         </div>
                       </div>
                       <div style={styles.orderItemPrice}>
@@ -686,7 +694,7 @@ const Checkout = () => {
                   🔒 Thông tin của bạn được bảo mật tuyệt đối.
                   <br />
                   Bằng cách đặt hàng, bạn đồng ý với{' '}
-                  <a href="#" style={{ color: '#6366f1' }}>
+                  <a href="#" style={{ color: '#d32f2f' }}>
                     Điều Khoản Dịch Vụ
                   </a>{' '}
                   của chúng tôi.

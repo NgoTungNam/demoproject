@@ -10,6 +10,8 @@ const navItems = [
     { path: '/admin/orders',    icon: '📦', label: 'Đơn hàng' },
     { path: '/admin/customers', icon: '👥', label: 'Khách hàng' },
     { path: '/admin/promotions',icon: '🎁', label: 'Khuyến mãi' },
+    { path: '/admin/flash-sales',icon: '⚡', label: 'Flash Sale' },
+    { path: '/admin/reviews',   icon: '⭐', label: 'Đánh giá' },
 ];
 
 const AdminLayout = () => {
@@ -33,7 +35,7 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <aside className={`admin-sidebar ${menuOpen ? 'is-open' : ''}`} style={{
                 width: '240px', flexShrink: 0,
-                background: 'linear-gradient(180deg,#1e1b4b 0%,#312e81 60%,#4338ca 100%)',
+                background: 'linear-gradient(180deg,#450a0a 0%,#7f1d1d 60%,#991b1b 100%)',
                 display: 'flex', flexDirection: 'column',
                 boxShadow: '4px 0 20px rgba(0,0,0,0.15)',
                 position: 'sticky', top: 0, height: '100vh', overflowY: 'auto'

@@ -22,6 +22,8 @@ import AdminOrders from './pages/Admin/AdminOrders'
 import AdminPromotions from './pages/Admin/AdminPromotions'
 import AdminCustomers from './pages/Admin/AdminCustomers'
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import AdminFlashSales from './pages/Admin/AdminFlashSales'
+import AdminReviews from './pages/Admin/AdminReviews'
 import ProtectedRoute from './components/ProtectedRoute'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -68,6 +70,8 @@ function App() {
               <Route path="orders" element={<AdminOrders />} />
               <Route path="customers" element={<AdminCustomers />} />
               <Route path="promotions" element={<AdminPromotions />} />
+              <Route path="flash-sales" element={<AdminFlashSales />} />
+              <Route path="reviews" element={<AdminReviews />} />
               {/* Admin Edit Routes */}
               <Route path="product/edit/:id" element={<ProductCreate />} />
             </Route>

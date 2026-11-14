@@ -2,6 +2,7 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
+import Chatbot from './Chatbot/Chatbot'
 
 const MainLayout = () => {
     return (
@@ -11,6 +12,7 @@ const MainLayout = () => {
                 <Outlet />
             </main>
             <Footer />
+            <Chatbot />
         </div>
     )
 }

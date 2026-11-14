@@ -10,7 +10,8 @@ const Cart = () => {
   const getImageUrl = (url) => {
     if (!url) return 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
     if (url.startsWith('http')) return url
-    return `${API_BASE_URL}${url}`
+    if (url.startsWith('/')) return url
+    return `${API_BASE_URL}/${url}`
   }
 
   const formatPrice = (price) => {
@@ -51,13 +52,21 @@ const Cart = () => {
                       alt={item.name}
                       style={{ width: '100%', height: '70px', objectFit: 'cover' }}
                       onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
+                        e.target.onerror = null
+                        e.target.src = '/images/products/noiinox.jpg'
                       }}
                     />
                   </div>
                   <div className="col-9 col-md-4">
                     <h6 className="mb-1 fw-bold">{item.name}</h6>
-                    <p className="text-muted small mb-0">{formatPrice(item.price)}</p>
+                    <div className="small">
+                      <span className="fw-semibold text-primary">{formatPrice(item.current_price ?? item.price)}</span>
+                      {Number(item.original_price) > Number(item.current_price ?? item.price) && <>
+                        <span className="text-muted text-decoration-line-through ms-2">{formatPrice(item.original_price)}</span>
+                        <span className="badge bg-danger ms-2">-{Math.round((item.original_price - (item.current_price ?? item.price)) / item.original_price * 100)}%</span>
+                      </>}
+                      {item.has_flash_sale && <span className="badge bg-warning text-dark ms-2">FLASH SALE</span>}
+                    </div>
                   </div>
                   <div className="col-6 col-md-3 mt-2 mt-md-0">
                     <div className="input-group input-group-sm" style={{ maxWidth: '120px' }}>
