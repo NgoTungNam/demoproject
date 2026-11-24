@@ -372,3 +372,290 @@ body {
   .review-summary .card-body { padding: 18px; }
 }
 
+
+
+/* ========================================================
+   HERO ANIMATED SLIDER & FLASH SALE DYNAMIC EFFECTS
+   ======================================================== */
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+}
+
+@keyframes heroPulseGlow {
+  0%, 100% {
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+  }
+  50% {
+    box-shadow: 0 20px 48px rgba(255, 149, 0, 0.45);
+  }
+}
+
+@keyframes flashBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(255, 149, 0, 0.6);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 24px rgba(255, 77, 77, 0.9);
+  }
+}
+
+@keyframes slideContentIn {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideImageIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.hero-slider-section {
+  position: relative;
+  overflow: hidden;
+  min-height: 480px;
+  display: flex;
+  align-items: center;
+  transition: background 0.8s ease;
+}
+
+.hero-content-anim {
+  animation: slideContentIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-image-anim {
+  animation: slideImageIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-floating-card {
+  position: relative;
+  display: inline-block;
+  animation: heroFloat 4s ease-in-out infinite;
+}
+
+.hero-floating-card:hover {
+  animation-play-state: paused;
+}
+
+.hero-floating-img {
+  max-height: 380px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  animation: heroPulseGlow 3.5s infinite ease-in-out;
+  transition: transform 0.4s ease;
+}
+
+.hero-floating-card:hover .hero-floating-img {
+  transform: scale(1.02);
+}
+
+.hero-nav-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.hero-nav-btn:hover {
+  background: #fff;
+  color: #d32f2f;
+  transform: scale(1.12);
+  border-color: #fff;
+}
+
+.hero-dot-indicator {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.hero-dot-indicator.active {
+  width: 32px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.flash-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff4d4d, #ff9500);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  animation: flashBadgePulse 2s infinite ease-in-out;
+}
+
+.flash-timer-box {
+  background: linear-gradient(180deg, #1f1f1f 0%, #0d0d0d 100%);
+  color: #ff9500;
+  border: 1px solid rgba(255, 149, 0, 0.3);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-family: 'Courier New', monospace;
+  font-weight: 900;
+  font-size: 1.25rem;
+  min-width: 52px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.flash-item-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+  border: 1.5px solid rgba(255, 150, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.flash-item-card:hover {
+  transform: translateY(-8px);
+  border-color: #ff9500;
+  box-shadow: 0 12px 30px rgba(255, 149, 0, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ========================================================
+   RESPONSIVE ENHANCEMENTS CHO MỌI THIẾT BỊ (MOBILE, TABLET, DESKTOP)
+   ======================================================== */
+
+/* Mobile category pills smooth scroll */
+.mobile-category-pills {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mobile-category-pills::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767.98px) {
+  /* Hero Slider Mobile */
+  .hero-slider-section {
+    min-height: auto;
+    padding: 2.5rem 0 !important;
+  }
+  .hero-slider-section h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.25 !important;
+  }
+  .hero-slider-section p.lead {
+    font-size: 0.92rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+  .hero-slider-section .btn-lg {
+    font-size: 0.9rem !important;
+    padding: 10px 18px !important;
+    width: 100%;
+  }
+  .hero-floating-img {
+    max-height: 240px !important;
+    margin-top: 1rem;
+  }
+  .hero-nav-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+
+  /* Flash Sale Section Mobile */
+  .flash-timer-box {
+    font-size: 1rem;
+    min-width: 42px;
+    padding: 4px 8px;
+  }
+  
+  /* Product card mobile 2-column styling */
+  .product-card-responsive .card-img-top {
+    height: 140px !important;
+    padding: 4px !important;
+  }
+  .product-card-responsive .card-title {
+    font-size: 0.82rem !important;
+    min-height: 34px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .product-card-responsive .card-text {
+    display: none; /* Ẩn mô tả dài trên màn hình nhỏ để cân đối layout */
+  }
+  .product-card-responsive .card-body {
+    padding: 8px 10px !important;
+  }
+  .product-card-responsive .fw-bold {
+    font-size: 0.9rem !important;
+  }
+  .product-card-responsive .btn-sm {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Navbar mobile */
+  .navbar-brand {
+    font-size: 1.35rem !important;
+  }
+
+  /* Table responsive wrapper */
+  .table-responsive {
+    border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .hero-slider-section h1 {
+    font-size: 2.2rem !important;
+  }
+  .hero-floating-img {
+    max-height: 300px !important;
+  }
+  .product-card-responsive .card-img-top {
+    height: 180px !important;
+  }
+}
+
+/* Fix sticky header z-index */
+header.sticky-top {
+  z-index: 1020;
+}

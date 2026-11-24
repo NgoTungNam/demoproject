@@ -223,6 +223,87 @@ const PaymentResult = () => {
           )}
         </div>
 
+        {/* MoMo QR Code khi đang chờ xác nhận */}
+        {isPending && method === 'momo' && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff0f9, #fce4f3)',
+            border: '2px solid #d63384',
+            borderRadius: 20,
+            padding: '24px 20px',
+            marginBottom: 28,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              marginBottom: 16,
+            }}>
+              <span style={{ fontSize: 28 }}>💜</span>
+              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#d63384' }}>
+                Quét mã QR để thanh toán MoMo
+              </span>
+            </div>
+            {/* QR từ MoMo VietQR */}
+            <div style={{
+              background: '#fff',
+              borderRadius: 16,
+              padding: 12,
+              display: 'inline-block',
+              boxShadow: '0 4px 20px rgba(214,51,132,0.15)',
+              marginBottom: 16,
+            }}>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                  `2|99|0965214607||EuroAsia Kitchen - Đơn hàng ${orderId ? '#' + orderId : ''}|0`
+                )}`}
+                alt="QR MoMo"
+                style={{ width: 200, height: 200, display: 'block', borderRadius: 8 }}
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+            </div>
+            <div style={{ fontSize: '0.88rem', color: '#6b7280', marginBottom: 8 }}>
+              Hoặc chuyển tiền thủ công qua MoMo:
+            </div>
+            <div style={{
+              background: '#fff',
+              borderRadius: 12,
+              padding: '12px 20px',
+              display: 'inline-block',
+              textAlign: 'left',
+              fontSize: '0.9rem',
+              minWidth: 240,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ color: '#6b7280' }}>Số điện thoại:</span>
+                <span style={{ fontWeight: 700, color: '#d63384' }}>0965.214.607</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ color: '#6b7280' }}>Tên:</span>
+                <span style={{ fontWeight: 700 }}>EuroAsia Kitchen</span>
+              </div>
+              {orderId && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#6b7280' }}>Nội dung CK:</span>
+                  <span style={{ fontWeight: 700, color: '#d32f2f' }}>DH{orderId}</span>
+                </div>
+              )}
+            </div>
+            <div style={{
+              marginTop: 14,
+              padding: '10px 16px',
+              background: '#fce4f3',
+              borderRadius: 10,
+              fontSize: '0.82rem',
+              color: '#9d174d',
+              fontWeight: 600,
+            }}>
+              ⚡ Trang sẽ tự cập nhật sau khi nhận được xác nhận thanh toán
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
           {isSuccess ? (

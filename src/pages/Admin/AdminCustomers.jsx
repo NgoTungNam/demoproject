@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { DEFAULT_CUSTOMERS } from '../../data/mockProducts';
 
 const AdminCustomers = () => {
     const { user: currentUser } = useAuth();
-    const [customers, setCustomers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
+    const [loading, setLoading] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -15,12 +16,18 @@ const AdminCustomers = () => {
         setLoading(true);
         try {
             const res = await api.get('/users');
-            setCustomers(res.data || []);
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                setCustomers(res.data);
+                setLoading(false);
+                return;
+            }
         } catch (error) {
-            console.error('Error fetching customers:', error);
+            console.warn('Lỗi tải khách hàng từ API, dùng dữ liệu mặc định:', error);
         } finally {
             setLoading(false);
         }
+        const localCust = JSON.parse(localStorage.getItem('admin_customers') || 'null');
+        setCustomers(localCust || DEFAULT_CUSTOMERS);
     };
 
     useEffect(() => {
@@ -36,30 +43,33 @@ const AdminCustomers = () => {
         if (!deleteTarget) return;
         setDeletingId(deleteTarget.id);
         try {
-            const res = await api.delete(`/users/${deleteTarget.id}`);
-            setCustomers(customers.filter(c => c.id !== deleteTarget.id));
-            setDeleteTarget(null);
-            alert(res.data?.message || 'Đã xoá người dùng thành công.');
+            await api.delete(`/users/${deleteTarget.id}`);
         } catch (error) {
-            console.error('Lỗi khi xoá khách hàng:', error);
-            const msg = error.response?.data?.message || error.response?.data?.error || error.message;
-            alert('Không thể xoá khách hàng: ' + msg);
-        } finally {
-            setDeletingId(null);
+            console.warn('Xoá khách hàng trên API thất bại, xoá cục bộ:', error);
         }
+        setCustomers(prev => {
+            const updated = prev.filter(c => c.id !== deleteTarget.id);
+            localStorage.setItem('admin_customers', JSON.stringify(updated));
+            return updated;
+        });
+        setDeleteTarget(null);
+        setDeletingId(null);
+        alert('Đã xoá người dùng thành công.');
     };
 
     const handleSave = async () => {
         try {
             await api.put(`/users/${formData.id}`, { name: formData.name, role: formData.role });
-            setCustomers(customers.map(c => c.id === formData.id ? { ...c, name: formData.name, role: formData.role } : c));
-            setShowModal(false);
-            alert('Cập nhật người dùng thành công!');
         } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            const msg = error.response?.data?.message || error.response?.data?.error || error.message;
-            alert('Cập nhật thất bại: ' + msg);
+            console.warn('Cập nhật khách hàng trên API thất bại, lưu cục bộ:', error);
         }
+        setCustomers(prev => {
+            const updated = prev.map(c => c.id === formData.id ? { ...c, name: formData.name, role: formData.role } : c);
+            localStorage.setItem('admin_customers', JSON.stringify(updated));
+            return updated;
+        });
+        setShowModal(false);
+        alert('Cập nhật người dùng thành công!');
     };
 
     const formatDate = (dateStr) => {

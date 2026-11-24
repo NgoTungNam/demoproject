@@ -32,6 +32,7 @@
     "dev:server": "node server/index.js",
     "dev:full": "start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
     "server": "node server/index.js",
+    "sync:db": "node server/sync_mysql.js",
     "db:init": "node server/init_db.js",
     "migrate": "node server/migrate_payment.js",
     "migrate:ecommerce": "node server/migrate_ecommerce_features.js",

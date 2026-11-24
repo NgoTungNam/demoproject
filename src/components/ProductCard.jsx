@@ -40,14 +40,26 @@ const CardCountdown = ({ endTime }) => {
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart()
 
-  const getImageUrl = (url) => {
-    if (!url) return 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
-    if (url.startsWith('http')) return url
-    if (url.startsWith('/')) return url
+  const getImageUrl = (url, name = '') => {
+    const nameLower = (name || '').toLowerCase()
+    // Nồi chiên không dầu: luôn dùng ảnh đúng
+    if (nameLower.includes('chiên') && (!url || url.includes('noiinox') || url.includes('chao') || url.startsWith('blob:'))) {
+      return '/images/products/noichien.jpg'
+    }
+    // Máy ép hoa quả: luôn dùng ảnh máy ép
+    if (nameLower.includes('ép') && (!url || url.includes('noiinox') || url.includes('chao') || url.startsWith('blob:'))) {
+      return '/images/products/mayep.webp'
+    }
+    if (!url) {
+      return 'https://images.unsplash.com/photo-1584346133934-a3afd2a33832?w=400&q=80&auto=format&fit=crop'
+    }
+    // base64 / blob / http / path tuyệt đối
+    if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http') || url.startsWith('/')) return url
+    // relative path từ server (vd: images/products/xxx.jpg)
     return `${API_BASE_URL}/${url}`
   }
 
-  const imageUrl = getImageUrl(product.imageUrl || product.image_url)
+  const imageUrl = getImageUrl(product.imageUrl || product.image_url, product.name)
 
   const handleAddToCart = (e) => {
     e.preventDefault()
@@ -65,8 +77,8 @@ const ProductCard = ({ product }) => {
   const hasFlash = product.has_flash_sale
 
   return (
-    <div className="col-md-6 col-lg-4 mb-4">
-      <div className="card h-100" style={{
+    <div className="col-6 col-md-6 col-lg-4 mb-3 mb-md-4 px-2 px-md-3">
+      <div className="card h-100 product-card-responsive" style={{
         border: hasFlash ? '2px solid #d32f2f' : '1px solid #e0e0e0',
         borderRadius: 12, overflow: 'hidden', transition: 'box-shadow 0.2s, transform 0.2s'
       }}>
@@ -76,8 +88,11 @@ const ProductCard = ({ product }) => {
               src={imageUrl}
               className="card-img-top product-image"
               alt={product.name}
-              style={{ height: 200, objectFit: 'cover' }}
-              onError={(e) => { e.target.onerror = null; e.target.src = '/images/products/noiinox.jpg' }}
+              style={{ height: 200, objectFit: 'contain', backgroundColor: '#fff', padding: 8 }}
+              onError={(e) => {
+                e.target.onerror = null
+                e.target.src = product.name?.toLowerCase().includes('chiên') ? '/images/products/noichien.jpg' : '/images/products/noiinox.jpg'
+              }}
             />
             {hasFlash && (
               <span style={{

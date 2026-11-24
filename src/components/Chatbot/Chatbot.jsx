@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { chatAPI, API_BASE_URL } from '../../services/api'
+import { getClientChatResponse } from '../../services/clientChatAdvisor'
 import './Chatbot.css'
 
 const QUICK_SUGGESTIONS = [
@@ -110,28 +111,35 @@ const Chatbot = () => {
     setIsLoading(true)
 
     try {
-      const res = await chatAPI.sendMessage(query, historyPayload)
-      const data = res.data
+      try {
+        const res = await chatAPI.sendMessage(query, historyPayload)
+        const data = res.data
 
+        if (data && data.reply) {
+          const botMsg = {
+            id: `bot-${Date.now()}`,
+            sender: 'bot',
+            text: data.reply,
+            products: Array.isArray(data.products) ? data.products : [],
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }
+          setMessages(prev => [...prev, botMsg])
+          return
+        }
+      } catch (error) {
+        console.warn('Backend chat API offline or unreachable, using client advisor fallback:', error?.message)
+      }
+
+      // Client-side fallback: Trả lời thông minh ngay cả khi không kết nối được backend (e.g. Cloudflare deploy)
+      const fallback = getClientChatResponse(query)
       const botMsg = {
         id: `bot-${Date.now()}`,
         sender: 'bot',
-        text: data.reply || 'Dạ đây là thông tin tư vấn dành cho anh/chị:',
-        products: Array.isArray(data.products) ? data.products : [],
+        text: fallback.reply,
+        products: fallback.products,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }
-
       setMessages(prev => [...prev, botMsg])
-    } catch (error) {
-      console.error('Chatbot API error:', error)
-      const errorMsg = {
-        id: `bot-err-${Date.now()}`,
-        sender: 'bot',
-        text: error.response?.data?.error || 'Dạ em đang gặp chút trục trặc kết nối, anh/chị vui lòng thử lại sau giây lát nhé!',
-        products: [],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }
-      setMessages(prev => [...prev, errorMsg])
     } finally {
       setIsLoading(false)
     }

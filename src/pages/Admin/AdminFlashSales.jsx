@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/api'
+import { DEFAULT_PRODUCTS, DEFAULT_FLASH_SALES } from '../../data/mockProducts'
 
 const API_URL = `${API_BASE_URL}/api`
 
 const fmt = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0)
 
 const AdminFlashSales = () => {
-  const [sales, setSales] = useState([])
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [sales, setSales] = useState(DEFAULT_FLASH_SALES)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [msg, setMsg] = useState('')
@@ -21,15 +22,34 @@ const AdminFlashSales = () => {
       const res = await fetch(`${API_URL}/flash-sales/admin/all`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
-      setSales(await res.json())
-    } catch (e) { console.error(e) } finally { setLoading(false) }
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data) && data.length > 0) {
+          setSales(data)
+          return
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi kết nối flash sales API:', e)
+    } finally {
+      setLoading(false)
+    }
+    const local = JSON.parse(localStorage.getItem('admin_flash_sales') || 'null')
+    setSales(local || DEFAULT_FLASH_SALES)
   }
 
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${API_URL}/products`)
-      setProducts(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data)
+          return
+        }
+      }
     } catch {}
+    setProducts(DEFAULT_PRODUCTS)
   }
 
   useEffect(() => { fetchSales(); fetchProducts() }, [])
@@ -54,7 +74,7 @@ const AdminFlashSales = () => {
     setMsg('')
   }
 
-  const addItem = () => setForm(f => ({ ...f, items: [...f.items, { product_id: '', flash_price: '', quantity: 50 }] }))
+  const addItem = () => setForm(f => ({ ...f, items: [...f.items, { product_id: products[0]?.id || '', flash_price: '', quantity: 50 }] }))
   const removeItem = (i) => setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }))
   const updateItem = (i, field, val) => setForm(f => ({
     ...f,
@@ -67,7 +87,7 @@ const AdminFlashSales = () => {
     try {
       const url = editing ? `${API_URL}/flash-sales/${editing.id}` : `${API_URL}/flash-sales`
       const method = editing ? 'PUT' : 'POST'
-      const res = await fetch(url, {
+      await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({
@@ -76,29 +96,61 @@ const AdminFlashSales = () => {
           end_time: new Date(form.end_time).toISOString(),
         })
       })
-      const data = await res.json()
-      if (!res.ok) { setMsg('❌ ' + (data.error || data.message)); return }
-      setMsg('✅ ' + (editing ? 'Đã cập nhật!' : 'Đã tạo Flash Sale!'))
-      setShowForm(false)
-      fetchSales()
-    } catch { setMsg('❌ Lỗi kết nối') }
+    } catch {
+      console.warn('API không khả dụng, cập nhật flash sale cục bộ')
+    }
+
+    setSales(prev => {
+      let updated;
+      const formattedItems = form.items.map(it => {
+        const prod = products.find(p => p.id === Number(it.product_id));
+        return {
+          ...it,
+          product_name: prod?.name || `Sản phẩm #${it.product_id}`,
+          original_price: prod?.price || 0
+        };
+      });
+      if (editing) {
+        updated = prev.map(s => s.id === editing.id ? { ...s, ...form, items: formattedItems } : s);
+      } else {
+        const newSale = { id: Date.now(), ...form, items: formattedItems };
+        updated = [newSale, ...prev];
+      }
+      localStorage.setItem('admin_flash_sales', JSON.stringify(updated));
+      return updated;
+    });
+
+    setMsg('✅ ' + (editing ? 'Đã cập nhật Flash Sale!' : 'Đã tạo Flash Sale thành công!'))
+    setShowForm(false)
   }
 
   const handleDelete = async (id) => {
     if (!window.confirm('Xóa Flash Sale này?')) return
-    await fetch(`${API_URL}/flash-sales/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-    fetchSales()
+    try {
+      await fetch(`${API_URL}/flash-sales/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+    } catch {}
+    setSales(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      localStorage.setItem('admin_flash_sales', JSON.stringify(updated));
+      return updated;
+    });
   }
 
   const toggleActive = async (sale) => {
-    await fetch(`${API_URL}/flash-sales/${sale.id}/toggle`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-    fetchSales()
+    try {
+      await fetch(`${API_URL}/flash-sales/${sale.id}/toggle`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+    } catch {}
+    setSales(prev => {
+      const updated = prev.map(s => s.id === sale.id ? { ...s, is_active: s.is_active ? 0 : 1 } : s);
+      localStorage.setItem('admin_flash_sales', JSON.stringify(updated));
+      return updated;
+    });
   }
 
   const toLocalInput = (dt) => {

@@ -35,7 +35,7 @@ app.use(
         process.env.CORS_ORIGINS === '*' ||
         allowedOrigins.includes(origin) ||
         /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
-        /\.(pages\.dev|railway\.app|vercel\.app|netlify\.app|onrender\.com)$/.test(hostname)
+        /\.(pages\.dev|railway\.app|vercel\.app|netlify\.app|onrender\.com|workers\.dev|trycloudflare\.com|ngrok\.io|ngrok-free\.app)$/.test(hostname)
       ) {
         return callback(null, true);
       }
@@ -973,7 +973,7 @@ app.post("/api/payment/cod/confirm", (req, res) => {
 });
 
 // SPA fallback: Phục vụ index.html cho các route phía client nếu tồn tại build dist
-app.get('*', (req, res, next) => {
+app.get('/{*splat}', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'Endpoint không tồn tại' });
   }

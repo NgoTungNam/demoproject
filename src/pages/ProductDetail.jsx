@@ -7,9 +7,16 @@ import ReviewSection from '../components/ReviewSection'
 
 /* ─── Helpers ─────────────────────────────────────────── */
 const fmt = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0)
-const getImg = (url) => {
+const getImg = (url, name = '') => {
+  const n = (name || '').toLowerCase()
+  if (n.includes('chiên') && (!url || url.includes('noiinox') || url.includes('chao'))) {
+    return '/images/products/noichien.jpg'
+  }
+  if (n.includes('ép') && (!url || url.includes('noiinox') || url.includes('chao'))) {
+    return '/images/products/mayep.webp'
+  }
   if (!url) return '/images/products/noiinox.jpg'
-  if (url.startsWith('http') || url.startsWith('/')) return url
+  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http') || url.startsWith('/')) return url
   return `${API_BASE_URL}/${url}`
 }
 
@@ -134,11 +141,14 @@ const ProductDetail = () => {
         <div className="col-md-5">
           <div className="card shadow-sm overflow-hidden bg-white" style={{ borderRadius: 16 }}>
             <img
-              src={getImg(product.imageUrl || product.image_url)}
+              src={getImg(product.imageUrl || product.image_url, product.name)}
               className="w-100"
               alt={product.name}
               style={{ objectFit: 'contain', height: 380, backgroundColor: '#fff' }}
-              onError={(e) => { e.target.onerror = null; e.target.src = '/images/products/noiinox.jpg' }}
+              onError={(e) => {
+                e.target.onerror = null
+                e.target.src = product.name?.toLowerCase().includes('chiên') ? '/images/products/noichien.jpg' : '/images/products/noiinox.jpg'
+              }}
             />
           </div>
         </div>
