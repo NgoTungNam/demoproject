@@ -36,6 +36,8 @@
     "migrate": "node server/migrate_payment.js",
     "migrate:ecommerce": "node server/migrate_ecommerce_features.js",
     "admin:create": "node server/create_admin.js",
-    "build": "vite build --configLoader runner"
+    "build": "vite build --configLoader runner",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   }
 }

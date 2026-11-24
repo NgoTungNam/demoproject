@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "preDeployCommand": "npm run db:init && npm run migrate",
+    "preDeployCommand": "npm run db:init && npm run migrate && npm run migrate:ecommerce",
     "startCommand": "node server/index.js",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 100,

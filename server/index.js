@@ -29,7 +29,14 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      let hostname = '';
+      try { hostname = new URL(origin).hostname; } catch (_) {}
+      if (
+        process.env.CORS_ORIGINS === '*' ||
+        allowedOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+        /\.(pages\.dev|railway\.app|vercel\.app|netlify\.app|onrender\.com)$/.test(hostname)
+      ) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS: ' + origin));
@@ -963,6 +970,18 @@ app.post("/api/payment/cod/confirm", (req, res) => {
       res.json({ success: true, message: "Đơn hàng COD đã được xác nhận" });
     },
   );
+});
+
+// SPA fallback: Phục vụ index.html cho các route phía client nếu tồn tại build dist
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Endpoint không tồn tại' });
+  }
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  next();
 });
 
 app.use((error, req, res, next) => {

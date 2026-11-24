@@ -57,9 +57,10 @@ async function migrate() {
     }
 
     console.log('E-commerce schema migration completed. Existing product prices and review/sale data were preserved.');
+    process.exit(0);
   } catch (error) {
     console.error('E-commerce migration failed:', error.message);
-    process.exitCode = 1;
+    process.exit(1);
   } finally {
     await pool.end();
   }
