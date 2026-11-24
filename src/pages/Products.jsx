@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { API_BASE_URL, productAPI, categoryAPI } from '../services/api'
+import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES } from '../data/mockProducts'
 import ProductCard from '../components/ProductCard'
 
 const Products = () => {
   const [searchParams] = useSearchParams()
-  const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get('search') || '')
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
       setErrorMsg(null)
       try {
         let productsRes
@@ -25,18 +25,31 @@ const Products = () => {
         } else {
           productsRes = await productAPI.getAll()
         }
-        setProducts(productsRes.data.content || productsRes.data || [])
+        const list = productsRes.data?.content || productsRes.data || []
+        if (Array.isArray(list) && list.length > 0) {
+          setProducts(list)
+        } else if (!searchKeyword && !selectedCategory) {
+          setProducts(DEFAULT_PRODUCTS)
+        } else {
+          setProducts(list)
+        }
 
         const categoriesRes = await categoryAPI.getAll()
-        setCategories(categoriesRes.data || [])
+        const catList = categoriesRes.data || []
+        if (Array.isArray(catList) && catList.length > 0) {
+          setCategories(catList)
+        }
       } catch (error) {
         console.error('Error fetching products:', error)
-        setProducts([])
-        setErrorMsg(
-          window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
-            ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`
-            : `Không thể kết nối đến máy chủ API (${API_BASE_URL || 'cục bộ'}). Vui lòng kiểm tra backend server đang chạy.`
-        )
+        let list = DEFAULT_PRODUCTS
+        if (selectedCategory) {
+          list = list.filter(p => String(p.category_id) === String(selectedCategory))
+        }
+        if (searchKeyword) {
+          list = list.filter(p => p.name.toLowerCase().includes(searchKeyword.toLowerCase()))
+        }
+        setProducts(list)
+        setCategories(DEFAULT_CATEGORIES)
       } finally {
         setLoading(false)
       }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { productAPI, API_BASE_URL } from '../services/api'
+import { DEFAULT_PRODUCTS } from '../data/mockProducts'
 import { useCart } from '../context/CartContext'
 import ReviewSection from '../components/ReviewSection'
 
@@ -89,9 +90,15 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       try {
         const res = await productAPI.getById(id)
-        setProduct(res.data)
+        if (res.data && res.data.id) {
+          setProduct(res.data)
+        } else {
+          const fallback = DEFAULT_PRODUCTS.find(p => String(p.id) === String(id)) || DEFAULT_PRODUCTS[0]
+          setProduct(fallback)
+        }
       } catch (error) {
-        setProduct(null)
+        const fallback = DEFAULT_PRODUCTS.find(p => String(p.id) === String(id)) || DEFAULT_PRODUCTS[0]
+        setProduct(fallback)
       } finally { setLoading(false) }
     }
     fetchProduct()

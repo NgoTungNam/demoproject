@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL, productAPI, categoryAPI } from '../../services/api';
+import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES } from '../../data/mockProducts';
 
 const fallbackImage = '/images/products/chao.jpg';
 
@@ -13,9 +14,9 @@ const formatPrice = (p) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
 
 const AdminProducts = () => {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
@@ -44,10 +45,16 @@ const AdminProducts = () => {
                 productAPI.getAll(),
                 categoryAPI.getAll().catch(() => ({ data: [] }))
             ]);
-            setProducts(pRes.data || []);
-            setCategories(cRes.data || []);
+            if (pRes.data && Array.isArray(pRes.data) && pRes.data.length > 0) {
+                setProducts(pRes.data);
+            }
+            if (cRes.data && Array.isArray(cRes.data) && cRes.data.length > 0) {
+                setCategories(cRes.data);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
+            setProducts(DEFAULT_PRODUCTS);
+            setCategories(DEFAULT_CATEGORIES);
             setErrorMsg(
                 window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
                     ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`

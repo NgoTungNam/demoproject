@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { API_BASE_URL, productAPI, categoryAPI } from '../services/api'
+import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES } from '../data/mockProducts'
 import ProductCard from '../components/ProductCard'
 
 /* Flash Sale Banner with live countdown */
@@ -115,9 +116,9 @@ const FlashSaleBanner = () => {
 }
 
 const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [featuredProducts, setFeaturedProducts] = useState(DEFAULT_PRODUCTS.slice(0, 6))
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
 
   useEffect(() => {
@@ -129,20 +130,17 @@ const Home = () => {
         ])
         if (productsRes.status === 'fulfilled') {
           const pData = productsRes.value.data
-          setFeaturedProducts(pData?.content || pData || [])
-        } else {
-          console.error('Lỗi tải sản phẩm nổi bật:', productsRes.reason)
-          setErrorMsg(
-            window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
-              ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`
-              : `Không thể kết nối đến máy chủ API (${API_BASE_URL || 'cục bộ'}).`
-          )
+          const list = pData?.content || pData || []
+          if (Array.isArray(list) && list.length > 0) {
+            setFeaturedProducts(list.slice(0, 6))
+          }
         }
 
         if (categoriesRes.status === 'fulfilled') {
-          setCategories(categoriesRes.value.data || [])
-        } else {
-          console.error('Lỗi tải danh mục:', categoriesRes.reason)
+          const cData = categoriesRes.value.data
+          if (Array.isArray(cData) && cData.length > 0) {
+            setCategories(cData)
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -172,11 +170,12 @@ const Home = () => {
             </div>
             <div className="col-md-6">
               <img
-                src="https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&w=800&q=80"
+                src="/images/products/dao.jpg"
                 className="img-fluid rounded shadow"
                 alt="Bộ dao bếp cao cấp EuroAsia"
+                style={{ maxHeight: '350px', width: '100%', objectFit: 'cover' }}
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/600x400?text=EuroAsia+Kitchen'
+                  e.target.src = 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&w=800&q=80'
                 }}
               />
             </div>
