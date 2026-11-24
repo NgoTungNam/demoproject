@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { productAPI, categoryAPI } from '../services/api'
+import { API_BASE_URL, productAPI, categoryAPI } from '../services/api'
 import ProductCard from '../components/ProductCard'
 
 const Products = () => {
@@ -8,12 +8,14 @@ const Products = () => {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get('search') || '')
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
+      setErrorMsg(null)
       try {
         let productsRes
         if (searchKeyword) {
@@ -30,6 +32,11 @@ const Products = () => {
       } catch (error) {
         console.error('Error fetching products:', error)
         setProducts([])
+        setErrorMsg(
+          window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
+            ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`
+            : `Không thể kết nối đến máy chủ API (${API_BASE_URL || 'cục bộ'}). Vui lòng kiểm tra backend server đang chạy.`
+        )
       } finally {
         setLoading(false)
       }
@@ -71,6 +78,13 @@ const Products = () => {
           {searchKeyword && (
             <div className="alert alert-info">
               Kết quả tìm kiếm cho: <strong>"{searchKeyword}"</strong>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="alert alert-warning d-flex align-items-center mb-4" role="alert">
+              <i className="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+              <div>{errorMsg}</div>
             </div>
           )}
 

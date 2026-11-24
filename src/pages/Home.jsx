@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { productAPI, categoryAPI } from '../services/api'
+import { API_BASE_URL, productAPI, categoryAPI } from '../services/api'
 import ProductCard from '../components/ProductCard'
 
 /* Flash Sale Banner with live countdown */
@@ -118,6 +118,7 @@ const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,6 +132,11 @@ const Home = () => {
           setFeaturedProducts(pData?.content || pData || [])
         } else {
           console.error('Lỗi tải sản phẩm nổi bật:', productsRes.reason)
+          setErrorMsg(
+            window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
+              ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`
+              : `Không thể kết nối đến máy chủ API (${API_BASE_URL || 'cục bộ'}).`
+          )
         }
 
         if (categoriesRes.status === 'fulfilled') {
@@ -214,6 +220,12 @@ const Home = () => {
               Xem Tất Cả <i className="bi bi-arrow-right"></i>
             </Link>
           </div>
+          {errorMsg && (
+            <div className="alert alert-warning d-flex align-items-center mb-4" role="alert">
+              <i className="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+              <div>{errorMsg}</div>
+            </div>
+          )}
           {loading ? (
             <div className="loading-spinner">
               <div className="spinner-border text-primary" role="status">

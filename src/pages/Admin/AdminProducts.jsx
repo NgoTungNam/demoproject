@@ -16,6 +16,7 @@ const AdminProducts = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
 
@@ -37,6 +38,7 @@ const AdminProducts = () => {
 
     const fetchData = async () => {
         setLoading(true);
+        setErrorMsg(null);
         try {
             const [pRes, cRes] = await Promise.all([
                 productAPI.getAll(),
@@ -46,6 +48,11 @@ const AdminProducts = () => {
             setCategories(cRes.data || []);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setErrorMsg(
+                window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')
+                    ? `Lỗi Mixed Content: Trang web chạy HTTPS không thể kết nối tới Backend HTTP (${API_BASE_URL}). Vui lòng cập nhật URL Backend hỗ trợ HTTPS trong cấu hình deploy.`
+                    : `Không thể kết nối đến máy chủ API (${API_BASE_URL || 'cục bộ'}). Vui lòng kiểm tra backend server đang chạy.`
+            );
         } finally {
             setLoading(false);
         }
@@ -123,6 +130,12 @@ const AdminProducts = () => {
             </div>
 
             {/* Filter toolbar */}
+            {errorMsg && (
+                <div className="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <i className="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+                    <div>{errorMsg}</div>
+                </div>
+            )}
             <div className="card shadow-sm border-0 mb-4 rounded-3">
                 <div className="card-body p-3">
                     <div className="row g-2 align-items-center">
