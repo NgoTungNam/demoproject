@@ -244,67 +244,45 @@ const FlashSaleBanner = () => {
     let timer = null
 
     const loadFallback = () => {
-      // Đảm bảo luôn có Flash Sale hiển thị rực rỡ với dữ liệu mẫu
-      const local = JSON.parse(localStorage.getItem('admin_flash_sales') || 'null')
-      const targetSale = (local && local.length > 0) ? local[0] : DEFAULT_FLASH_SALES[0]
-      const endTime = targetSale?.end_time ? new Date(targetSale.end_time) : new Date(Date.now() + 86400000 * 2)
+      const rawLocal = localStorage.getItem('admin_flash_sales')
+      const local = rawLocal ? JSON.parse(rawLocal) : null
+      const sourceList = Array.isArray(local) ? local : DEFAULT_FLASH_SALES
+      const now = new Date()
+      const targetSale = sourceList.find(
+        (s) =>
+          s &&
+          s.is_active !== 0 &&
+          s.is_active !== false &&
+          (!s.start_time || new Date(s.start_time) <= now) &&
+          (!s.end_time || new Date(s.end_time) > now) &&
+          Array.isArray(s.items) &&
+          s.items.length > 0
+      )
 
-      const fallbackItems = (targetSale?.items && targetSale.items.length > 0)
-        ? targetSale.items.map((it) => {
-            const prod = DEFAULT_PRODUCTS.find((p) => p.id === Number(it.product_id))
-            return {
-              product_id: it.product_id,
-              product_name: it.product_name || prod?.name || `Sản phẩm #${it.product_id}`,
-              flash_price: it.flash_price || (prod ? Math.round(prod.price * 0.8) : 250000),
-              regular_price: it.original_price || prod?.price || 350000,
-              discount_percent: Math.round(((it.original_price || prod?.price || 350000) - (it.flash_price || 250000)) / (it.original_price || prod?.price || 350000) * 100),
-              remaining_quantity: it.quantity || 15,
-              image_url: prod?.image_url || '/images/products/chao.jpg'
-            }
-          })
-        : [
-            {
-              product_id: 1,
-              product_name: 'Dao Bếp Chef Cao Cấp',
-              flash_price: 256000,
-              regular_price: 320000,
-              discount_percent: 20,
-              remaining_quantity: 14,
-              image_url: '/images/products/dao.jpg'
-            },
-            {
-              product_id: 2,
-              product_name: 'Nồi Inox Cao Cấp 3 Đáy',
-              flash_price: 337500,
-              regular_price: 450000,
-              discount_percent: 25,
-              remaining_quantity: 8,
-              image_url: '/images/products/noiinox.jpg'
-            },
-            {
-              product_id: 7,
-              product_name: 'Chảo Chống Dính Đá Hoa Cương',
-              flash_price: 288000,
-              regular_price: 380000,
-              discount_percent: 24,
-              remaining_quantity: 19,
-              image_url: '/images/products/chao.jpg'
-            },
-            {
-              product_id: 8,
-              product_name: 'Thìa Inox 304 Bàn Ăn',
-              flash_price: 33700,
-              regular_price: 45000,
-              discount_percent: 25,
-              remaining_quantity: 42,
-              image_url: '/images/products/thia.jpg'
-            }
-          ]
+      if (!targetSale) {
+        setFlashData(null)
+        return
+      }
+
+      const endTime = targetSale.end_time ? new Date(targetSale.end_time) : new Date(Date.now() + 86400000 * 2)
+
+      const fallbackItems = targetSale.items.map((it) => {
+        const prod = DEFAULT_PRODUCTS.find((p) => p.id === Number(it.product_id))
+        return {
+          product_id: it.product_id,
+          product_name: it.product_name || prod?.name || `Sản phẩm #${it.product_id}`,
+          flash_price: it.flash_price || (prod ? Math.round(prod.price * 0.8) : 250000),
+          regular_price: it.original_price || prod?.price || 350000,
+          discount_percent: Math.round(((it.original_price || prod?.price || 350000) - (it.flash_price || 250000)) / (it.original_price || prod?.price || 350000) * 100),
+          remaining_quantity: it.quantity || 15,
+          image_url: prod?.image_url || '/images/products/chao.jpg'
+        }
+      })
 
       setFlashData({
         active: true,
         program: {
-          title: targetSale?.name || 'GIỜ VÀNG BẾP XINH - ƯU ĐÃI ĐẾN 30%',
+          title: targetSale.name || targetSale.title || 'GIỜ VÀNG BẾP XINH - ƯU ĐÃI ĐẾN 30%',
           end_time: endTime.toISOString()
         },
         items: fallbackItems
@@ -316,7 +294,10 @@ const FlashSaleBanner = () => {
     }
 
     fetch(`${API_BASE_URL}/api/flash-sales/active`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('API error')
+        return r.json()
+      })
       .then((data) => {
         if (data.active && data.program && data.items && data.items.length > 0) {
           setFlashData(data)
@@ -324,7 +305,8 @@ const FlashSaleBanner = () => {
           tick()
           timer = setInterval(tick, 1000)
         } else {
-          loadFallback()
+          // API trả lời thành công nhưng không có Flash Sale nào đang bật -> Ẩn banner
+          setFlashData(null)
         }
       })
       .catch(() => {
