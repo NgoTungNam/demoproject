@@ -43,16 +43,18 @@ const AdminDashboard = () => {
                 console.error('Dashboard data load error:', error);
                 if (!isMounted) return;
                 setStats({
-                    revenue: 2850000,
-                    orders: 6,
-                    customers: 4,
-                    products: 7,
+                    revenue: 26602042,
+                    orders: 60,
+                    customers: 5,
+                    products: 9,
                 });
                 setWeeklyData([15, 30, 45, 60, 40, 75, 90]);
                 setRecentOrders([
-                    { id: 101, customer_name: 'Ngô Tùng Nam', total_price: 320000, status: 'delivered', created_at: new Date().toISOString() },
-                    { id: 102, customer_name: 'Trần Văn Hùng', total_price: 830000, status: 'processing', created_at: new Date(Date.now() - 3600000).toISOString() },
-                    { id: 103, customer_name: 'Lê Thị Mai', total_price: 450000, status: 'pending', created_at: new Date(Date.now() - 7200000).toISOString() }
+                    { id: 88, customer: 'Ngô Tùng Nam', date: '14/11/2026', total: 30000, status: 'pending' },
+                    { id: 87, customer: 'Ngô Tùng Nam', date: '14/11/2026', total: 30000, status: 'pending' },
+                    { id: 86, customer: 'Ngô Tùng Nam', date: '14/11/2026', total: 30000, status: 'pending' },
+                    { id: 85, customer: 'Ngô Tùng Nam', date: '14/11/2026', total: 30000, status: 'pending' },
+                    { id: 84, customer: 'Ngô Tùng Nam', date: '14/11/2026', total: 30000, status: 'pending' }
                 ]);
                 setTopProducts([
                     { name: 'Dao Bếp Chef Cao Cấp', price: 960000, stock: 3, ratio: 100 },

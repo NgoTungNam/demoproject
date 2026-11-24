@@ -42,9 +42,20 @@ export default function AdminReviews() {
     } finally {
       setLoading(false)
     }
-    const local = JSON.parse(localStorage.getItem('admin_reviews') || 'null')
-    setReviews(local || DEFAULT_REVIEWS)
-    setTotal((local || DEFAULT_REVIEWS).length)
+    const local = JSON.parse(localStorage.getItem('admin_reviews_v2') || 'null')
+    const baseList = (local && Array.isArray(local)) ? local : DEFAULT_REVIEWS
+    try {
+      localStorage.removeItem('admin_reviews');
+      localStorage.setItem('admin_reviews_v2', JSON.stringify(baseList));
+    } catch (_) {}
+    
+    // Lọc theo tab trạng thái: all, pending, approved, hidden
+    const filtered = filter === 'all' 
+      ? baseList 
+      : baseList.filter(r => (r.status || 'approved') === filter)
+    
+    setReviews(filtered)
+    setTotal(filtered.length)
   }, [filter, page])
 
   useEffect(() => { fetchReviews() }, [fetchReviews])
@@ -61,7 +72,7 @@ export default function AdminReviews() {
     }
     setReviews(prev => {
       const updated = prev.map(r => r.id === id ? { ...r, status: action === 'approve' ? 'approved' : 'hidden' } : r);
-      localStorage.setItem('admin_reviews', JSON.stringify(updated));
+      localStorage.setItem('admin_reviews_v2', JSON.stringify(updated));
       return updated;
     });
     setMessage({ type: 'success', text: action === 'approve' ? 'Đã duyệt đánh giá.' : 'Đã ẩn đánh giá.' })
@@ -80,7 +91,7 @@ export default function AdminReviews() {
     }
     setReviews(prev => {
       const updated = prev.filter(r => r.id !== id);
-      localStorage.setItem('admin_reviews', JSON.stringify(updated));
+      localStorage.setItem('admin_reviews_v2', JSON.stringify(updated));
       return updated;
     });
     setMessage({ type: 'success', text: 'Đã xóa đánh giá.' })

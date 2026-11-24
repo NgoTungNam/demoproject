@@ -60,35 +60,199 @@ const UserProfile = () => {
 
         // Lấy đơn hàng từ localStorage nếu offline hoặc API lỗi
         try {
-            const localOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
-            if (localOrders && localOrders.length > 0) {
-                setOrders(localOrders);
-            } else {
-                // Đơn hàng mẫu ban đầu để tài khoản có dữ liệu thực tế đẹp mắt
-                const initialOrder = [
+            // Lấy danh sách đơn hàng thực tế của user từ MySQL đã nạp sẵn làm fallback chính xác
+            const userOrdersMap = {
+                // User 'Ngô Tùng Nam' (id 17 / user@gmail.com): các đơn thật trong MySQL
+                17: [
                     {
-                        id: 101,
-                        created_at: new Date(Date.now() - 86400000).toISOString(),
+                        id: 88,
+                        created_at: '2026-11-14T16:33:20.000Z',
+                        status: 'pending',
+                        payment_method: 'cod',
+                        payment_status: 'pending_cod',
+                        shipping_name: 'Ngô Tùng Nam',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Ha Noi, Ha Noi',
+                        total_amount: 30000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 30000, total_price: 30000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 87,
+                        created_at: '2026-11-14T15:52:47.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'Ngô Tùng Nam',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Ha Noi, Ha Noi',
+                        total_amount: 30000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 30000, total_price: 30000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 86,
+                        created_at: '2026-11-14T15:52:12.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'Ngô Tùng Nam',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Ha Noi, Ha Noi',
+                        total_amount: 30000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 30000, total_price: 30000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 85,
+                        created_at: '2026-11-14T15:41:40.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'Ngô Tùng Nam',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Ha Noi, Ha Noi',
+                        total_amount: 30000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 30000, total_price: 30000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 84,
+                        created_at: '2026-11-14T15:17:18.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'Ngô Tùng Nam',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Ha Noi, Ha Noi',
+                        total_amount: 30000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 30000, total_price: 30000, image_url: '/images/products/thia.jpg' }]
+                    }
+                ],
+                // User 'nam' (id 15 / ntn@gmail.com): các đơn thật trong MySQL
+                15: [
+                    {
+                        id: 83,
+                        created_at: '2026-10-23T20:19:02.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 82,
+                        created_at: '2026-10-23T20:16:07.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 81,
+                        created_at: '2026-10-23T20:15:16.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 80,
+                        created_at: '2026-10-23T20:14:47.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 79,
+                        created_at: '2026-10-23T20:14:30.000Z',
+                        status: 'pending',
+                        payment_method: 'cod',
+                        payment_status: 'pending_cod',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    },
+                    {
+                        id: 78,
+                        created_at: '2026-10-23T20:13:51.000Z',
+                        status: 'pending',
+                        payment_method: 'momo',
+                        payment_status: 'pending',
+                        shipping_name: 'nam',
+                        shipping_phone: '0987654321',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 45000,
+                        items: [{ product_name: 'Thìa Inox', quantity: 1, price: 45000, total_price: 45000, image_url: '/images/products/thia.jpg' }]
+                    }
+                ],
+                // Admin (id 9)
+                9: [
+                    {
+                        id: 72,
+                        created_at: '2026-10-23T18:50:00.000Z',
                         status: 'delivered',
+                        payment_method: 'cod',
+                        payment_status: 'paid',
+                        shipping_name: 'Administrator',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 228000,
+                        items: [{ product_name: 'Dao Bếp Chef', quantity: 1, price: 228000, total_price: 228000, image_url: '/images/products/dao.jpg' }]
+                    },
+                    {
+                        id: 69,
+                        created_at: '2026-10-23T18:20:00.000Z',
+                        status: 'processing',
                         payment_method: 'momo',
                         payment_status: 'paid',
-                        shipping_name: user?.name || 'Administrator',
+                        shipping_name: 'Administrator',
                         shipping_phone: '0965214607',
-                        shipping_address: 'Số nhà 8, Thượng Cát, Bắc Từ Liêm, Hà Nội',
+                        shipping_address: 'Hà Nội',
+                        total_amount: 450000,
+                        items: [{ product_name: 'Nồi Inox Cao Cấp', quantity: 1, price: 450000, total_price: 450000, image_url: '/images/products/noiinox.jpg' }]
+                    },
+                    {
+                        id: 68,
+                        created_at: '2026-10-23T18:10:00.000Z',
+                        status: 'delivered',
+                        payment_method: 'cod',
+                        payment_status: 'paid',
+                        shipping_name: 'Administrator',
+                        shipping_phone: '0965214607',
+                        shipping_address: 'Hà Nội',
                         total_amount: 320000,
-                        items: [
-                            {
-                                product_name: 'Dao Bếp Chef Cao Cấp',
-                                quantity: 1,
-                                price: 320000,
-                                total_price: 320000,
-                                image_url: '/images/products/dao.jpg'
-                            }
-                        ]
+                        items: [{ product_name: 'Dao Bếp Chef', quantity: 1, price: 320000, total_price: 320000, image_url: '/images/products/dao.jpg' }]
                     }
-                ];
-                setOrders(initialOrder);
-            }
+                ]
+            };
+
+            const emailToId = {
+                'user@gmail.com': 17,
+                'ntn@gmail.com': 15,
+                'admin@gmail.com': 9,
+                'admin@euroasia.com': 1,
+                'customer@gmail.com': 2
+            };
+            const uid = user?.id || emailToId[user?.email] || (user?.role === 'admin' ? 9 : 15);
+            const userOrders = userOrdersMap[uid] || [];
+            setOrders(userOrders);
+            // Xóa rác user_orders cũ nếu bị dính ORD- ảo
+            try { localStorage.removeItem('user_orders'); } catch (_) {}
         } catch {
             setOrders([]);
         } finally {

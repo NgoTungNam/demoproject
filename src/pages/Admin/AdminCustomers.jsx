@@ -26,8 +26,15 @@ const AdminCustomers = () => {
         } finally {
             setLoading(false);
         }
+        // Xóa cache cũ sai lệch nếu có
         const localCust = JSON.parse(localStorage.getItem('admin_customers') || 'null');
-        setCustomers(localCust || DEFAULT_CUSTOMERS);
+        // Nếu cache cũ chỉ có 4 người hoặc role sai thì ưu tiên DEFAULT_CUSTOMERS
+        if (!localCust || localCust.length < DEFAULT_CUSTOMERS.length || localCust[0]?.role !== 'admin') {
+            setCustomers(DEFAULT_CUSTOMERS);
+            try { localStorage.setItem('admin_customers', JSON.stringify(DEFAULT_CUSTOMERS)); } catch (_) {}
+        } else {
+            setCustomers(localCust);
+        }
     };
 
     useEffect(() => {

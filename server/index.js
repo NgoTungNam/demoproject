@@ -17,6 +17,7 @@ const reviewsRouter = require("./routes/reviews");
 const { issueToken, hashPassword, verifyPassword, requireAdmin, requireUser, optionalUser } = require("./auth");
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8080;
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100, standardHeaders: true, legacyHeaders: false });
 const defaultOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];

@@ -27,18 +27,23 @@
     "wrangler": "^4.123.0"
   },
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "vite --configLoader runner --port 3000",
-    "dev:server": "node server/index.js",
-    "dev:full": "start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
-    "server": "node server/index.js",
-    "sync:db": "node server/sync_mysql.js",
+    "start": "node scripts/clean_ports.js && start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
+    "dev": "node scripts/clean_ports.js && start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
+    "run": "node scripts/clean_ports.js && start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
+    "fix": "node scripts/clean_ports.js",
+    "sync": "node server/sync_all_mysql.js",
+    "server": "node scripts/clean_ports.js && node server/index.js",
+    "clean:ports": "node scripts/clean_ports.js",
+    "dev:server": "node scripts/clean_ports.js && node server/index.js",
+    "dev:full": "node scripts/clean_ports.js && start cmd /k \"node server/index.js\" && vite --configLoader runner --port 3000",
+    "sync:db": "node server/sync_all_mysql.js",
     "db:init": "node server/init_db.js",
     "migrate": "node server/migrate_payment.js",
     "migrate:ecommerce": "node server/migrate_ecommerce_features.js",
     "admin:create": "node server/create_admin.js",
     "build": "vite build --configLoader runner",
     "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "live": "node scripts/live.js"
   }
 }
